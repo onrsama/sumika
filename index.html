@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — 住宅会社専用 SaaS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:    #FAF8F5;
+  --bg2:   #F0ECE6;
+  --ink:   #1C2422;
+  --ink2:  #4A5E5A;
+  --ink3:  #8AADA8;
+  --gold:  #1F7A72;
+  --goldd: #186660;
+  --gbdr:  rgba(31,122,114,.22);
+  --bdr:   rgba(28,36,34,.09);
+  --bdr2:  rgba(28,36,34,.16);
+  --serif: 'Cormorant Garamond',serif;
+  --sans:  'Sora',sans-serif;
+  --jp:    'Noto Sans JP',sans-serif;
+}
+html,body{
+  height:100%;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.6;overflow:hidden
+}
+
+/* ── SHELL ── */
+.shell{height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+/* ── HEADER ── */
+header{
+  padding:16px 40px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--bdr);background:var(--bg);flex-shrink:0
+}
+.logo{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--ink);letter-spacing:.04em}
+.logo b{color:var(--gold);font-weight:600}
+.header-right{display:flex;align-items:center;gap:28px}
+.header-tag{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+.header-cta{
+  background:var(--ink);color:var(--bg);font-size:11px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;padding:9px 22px;
+  border:none;border-radius:2px;cursor:pointer;transition:background .2s
+}
+.header-cta:hover{background:var(--gold)}
+
+/* ── MAIN ── */
+main{overflow:hidden;display:flex;flex-direction:column;padding:22px 40px 0;gap:14px;min-height:0}
+
+/* ── PAGE INTRO ── */
+.page-intro{display:flex;align-items:baseline;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:var(--serif);font-size:30px;font-weight:300;color:var(--ink);display:flex;align-items:baseline;gap:10px;line-height:1}
+.page-title em{font-style:italic;color:var(--gold)}
+.page-sub{font-size:11px;font-family:var(--jp);color:var(--ink3);margin-top:3px}
+.tool-count{font-size:11px;color:var(--ink3);letter-spacing:.08em}
+.tool-count b{color:var(--gold);font-weight:600}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:6px;flex-wrap:nowrap;flex-shrink:0}
+.filter-btn{
+  padding:5px 14px;border-radius:2px;font-size:10.5px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  border:1px solid var(--bdr2);background:transparent;color:var(--ink2);
+  font-family:var(--sans);transition:all .18s;white-space:nowrap
+}
+.filter-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.filter-btn:hover:not(.active){border-color:var(--gold);color:var(--gold)}
+
+/* ── GRID ── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  overflow:hidden;
+  flex:1;
+  min-height:0;
+  padding-bottom:22px;
+}
+
+/* ── CARD ── */
+.card{
+  background:#fff;border:1px solid var(--bdr);border-radius:4px;
+  padding:16px 15px 14px;display:flex;flex-direction:column;gap:0;
+  cursor:pointer;transition:all .22s;position:relative;overflow:hidden;
+  min-height:0;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--gold);transform:scaleX(0);transform-origin:left;
+  transition:transform .28s ease
+}
+.card:hover{border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(28,36,34,.08)}
+.card:hover::before{transform:scaleX(1)}
+.card:hover .card-icon svg{opacity:.9;transform:scale(1.05)}
+
+/* card top row: icon left, num right */
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.card-icon{
+  width:34px;height:34px;border-radius:6px;
+  background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.card-icon svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.7;transition:all .22s}
+.card-num{font-family:var(--serif);font-size:26px;font-weight:300;color:rgba(31,122,114,.18);line-height:1}
+
+/* cat label */
+.card-cat{
+  font-size:9px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:7px;display:flex;align-items:center;gap:5px
+}
+.cat-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* title / en */
+.card-title{font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:2px}
+.card-en{font-size:9.5px;color:var(--ink3);margin-bottom:8px;line-height:1.3}
+
+/* body — fills remaining space, hides overflow cleanly */
+.card-body{
+  font-size:10.5px;font-family:var(--jp);color:var(--ink2);
+  line-height:1.7;flex:1;min-height:0;overflow:hidden;
+}
+
+/* footer */
+.card-footer{
+  margin-top:10px;padding-top:9px;border-top:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0
+}
+.card-tag{font-size:9px;letter-spacing:.06em;color:var(--gold);border:1px solid var(--gbdr);padding:2px 8px;border-radius:20px;white-space:nowrap}
+.card-price{font-size:9.5px;color:var(--ink3);white-space:nowrap}
+
+/* ── CAT DOT COLORS ── */
+.c-sales   {background:#2E8B7A}
+.c-design  {background:#3D7FAA}
+.c-ops     {background:#5C9E6E}
+.c-comp    {background:#6B7AAA}
+.c-finance {background:#AA7840}
+.c-after   {background:#7A6BAA}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--bdr);padding:10px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);flex-shrink:0
+}
+footer span{font-size:10px;color:var(--ink3);font-family:var(--jp)}
+footer .ver{font-family:var(--sans);letter-spacing:.08em}
+
+/* ── MODAL SOON BADGE ── */
+.modal-soon{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);border:1px solid var(--bdr2);
+  background:var(--bg2);border-radius:20px;padding:3px 12px;margin-bottom:12px
+}
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(28,36,34,.4);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;pointer-events:none;transition:opacity .22s
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg);border:1px solid var(--bdr2);border-radius:6px;
+  max-width:500px;width:100%;padding:36px;
+  transform:translateY(10px);transition:transform .28s ease;position:relative
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-close{
+  position:absolute;top:14px;right:14px;width:28px;height:28px;
+  background:var(--bg2);border:none;border-radius:2px;cursor:pointer;
+  font-size:13px;color:var(--ink2);display:flex;align-items:center;justify-content:center
+}
+.modal-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.modal-icon{width:44px;height:44px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.modal-cat{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;display:flex;align-items:center;gap:7px}
+.modal-title{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);line-height:1.2}
+.modal-en{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.modal-section{margin-bottom:14px}
+.modal-label{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.modal-text{font-size:13px;font-family:var(--jp);color:var(--ink2);line-height:1.85}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.modal-stat{background:var(--bg2);border-radius:3px;padding:12px 14px}
+.modal-stat-val{font-family:var(--serif);font-size:19px;font-weight:300;color:var(--gold)}
+.modal-stat-lbl{font-size:10px;color:var(--ink3);font-family:var(--jp);margin-top:2px}
+.modal-btn{
+  width:100%;margin-top:20px;padding:11px;background:var(--ink);color:var(--bg);
+  border:none;border-radius:2px;font-family:var(--sans);font-size:11.5px;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:background .2s
+}
+.modal-btn:hover{background:var(--gold)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="logo">SUMI<b>KA</b></div>
+    <div class="header-right">
+      <span class="header-tag">住宅会社専用 SaaSプラットフォーム</span>
+      <button class="header-cta">無料で試す</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-intro">
+      <div>
+        <div class="page-title">サービス<em>一覧</em></div>
+        <div class="page-sub">住宅業務のすべてをカバーする専門AIツール群</div>
+      </div>
+      <div class="tool-count"><b id="visCount">20</b> tools available</div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="Sales & CX">Sales & CX</button>
+      <button class="filter-btn" data-cat="Design & Viz">Design & Viz</button>
+      <button class="filter-btn" data-cat="Operations">Operations</button>
+      <button class="filter-btn" data-cat="Compliance">Compliance</button>
+      <button class="filter-btn" data-cat="Finance">Finance</button>
+      <button class="filter-btn" data-cat="After-Sales">After-Sales</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>
+    <span>© 2025 SUMIKA Inc. — 住宅業界のDXを、共に。</span>
+    <span class="ver">v1.0 · Prototype</span>
+  </footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" id="mIcon"></div>
+      <div>
+        <div class="modal-cat" id="mCat"></div>
+        <div class="modal-title" id="mTitle"></div>
+        <div class="modal-en" id="mEn"></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">課題・背景</div>
+      <div class="modal-text" id="mPain"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">解決策</div>
+      <div class="modal-text" id="mSolution"></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-stat"><div class="modal-stat-val" id="mRev"></div><div class="modal-stat-lbl">想定月額</div></div>
+      <div class="modal-stat"><div class="modal-stat-val" id="mTag"></div><div class="modal-stat-lbl">ポジション</div></div>
+    </div>
+    <button class="modal-btn" id="mBtn">このサービスを試す →</button>
+  </div>
+</div>
+
+<script>
+/* ── HEROICON SVG PATHS (outline) ── */
+const icons = {
+  "01": `<svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>`,
+  "02": `<svg viewBox="0 0 24 24"><path d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>`,
+  "03": `<svg viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>`,
+  "04": `<svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>`,
+  "05": `<svg viewBox="0 0 24 24"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>`,
+  "06": `<svg viewBox="0 0 24 24"><path d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/></svg>`,
+  "07": `<svg viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>`,
+  "08": `<svg viewBox="0 0 24 24"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>`,
+  "09": `<svg viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>`,
+  "10": `<svg viewBox="0 0 24 24"><path d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>`,
+  "11": `<svg viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>`,
+  "12": `<svg viewBox="0 0 24 24"><path d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.756 4.5 4.981V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.981c0-1.225-.807-2.282-1.907-2.409A18.783 18.783 0 0 0 12 2.25Z"/></svg>`,
+  "13": `<svg viewBox="0 0 24 24"><path d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125V18.75m-7.5-10.5v10.5m7.5 0H9m3 0h3M9 13.5l2.25 2.25L15 12"/></svg>`,
+  "14": `<svg viewBox="0 0 24 24"><path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`,
+  "15": `<svg viewBox="0 0 24 24"><path d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605"/></svg>`,
+  "16": `<svg viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>`,
+  "17": `<svg viewBox="0 0 24 24"><path d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"/></svg>`,
+  "18": `<svg viewBox="0 0 24 24"><path d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>`,
+  "19": `<svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`,
+  "20": `<svg viewBox="0 0 24 24"><path d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"/></svg>`,
+};
+
+const catColor={
+  "Sales & CX":"c-sales","Design & Viz":"c-design","Operations":"c-ops",
+  "Compliance":"c-comp","Finance":"c-finance","After-Sales":"c-after"
+};
+
+const tools=[
+  {id:"01",cat:"Sales & CX",   title:"AI 提案書ジェネレーター",        en:"Instant Custom Proposal Engine",           tag:"High Conviction",       rev:"¥50k〜¥150k", pain:"提案書作成に3〜5日かかり競合に後れを取る。専門スタッフ不足で対応が遅い。",           solution:"30分のヒアリングからAIが間取り・CG・見積り・補助金入りの提案書を自動生成。即日PDF送付が可能。"},
+  {id:"02",cat:"Design & Viz", title:"間取りAI オプティマイザー",       en:"Floor Plan Intelligence Engine",            tag:"High Conviction",       rev:"¥30k〜¥80k",  pain:"間取り設計は熟練ドラフターに依存。多様な家族ニーズに対応しきれない。",             solution:"土地・家族構成・予算を入力するだけで採光・動線を最適化した間取り案を5〜10パターン提案。"},
+  {id:"03",cat:"Operations",   title:"工程管理 AI スケジューラー",      en:"Smart Construction Timeline Manager",       tag:"Strong Need",           rev:"¥40k〜¥120k", pain:"工期遅延が平均2〜4週間発生。天気・材料・職人の調整がLINEとExcelで限界。",         solution:"天気予報・材料入荷・職人稼働を自動連携しスケジュールを再調整。全関係者へプッシュ通知。"},
+  {id:"04",cat:"Compliance",   title:"ZEH コンプライアンスチェッカー",  en:"Energy Standard Compliance Autopilot",      tag:"Regulatory Tailwind",   rev:"¥30k〜¥100k", pain:"ZEH・省エネ基準が毎年改正。対応スタッフがおらず認証を通らないリスクが高い。",     solution:"図面をアップロードするだけでZEH・UA値・ηAC値を自動チェック。改善レポートをリアルタイム出力。"},
+  {id:"05",cat:"After-Sales",  title:"住まいのカルテ",                  en:"Homeowner Lifetime Maintenance App",        tag:"LTV Multiplier",        rev:"¥200〜¥500/戸", pain:"竣工後に顧客との接点がない。リフォーム・紹介機会を完全に取りこぼしている。",         solution:"住宅オーナー専用アプリでメンテ通知・修繕依頼・設備更新を自動化。顧客LTVを3〜5倍へ。"},
+  {id:"06",cat:"Finance",      title:"補助金ナビゲーター",              en:"Government Subsidy Intelligence Tool",      tag:"High Conviction",       rev:"¥20k〜¥60k",  pain:"補助金制度が複雑で担当者が把握できない。平均¥1〜3百万の機会を取りこぼしている。", solution:"顧客情報と仕様を入力するだけで申請可能な補助金・期限・書類チェックリストを一覧表示。"},
+  {id:"07",cat:"Sales & CX",   title:"AR 土地シミュレーター",           en:"See Your Home On Your Land, Now",           tag:"Differentiation Tool",  rev:"¥50k〜¥200k", pain:"更地では家のイメージが湧かず購買決定が遅れる。高額な展示場に頼るしかない。",     solution:"スマホカメラを向けるだけでその土地に3Dの家が出現。ファサード・色・素材をリアルタイムで変更可能。"},
+  {id:"08",cat:"Operations",   title:"協力業者マネジメントハブ",        en:"Subcontractor Relationship Platform",       tag:"Strong Need",           rev:"¥40k〜¥100k", pain:"20〜50社の下請けをFAXとExcelで管理。契約・支払いトラブルが頻発している。",       solution:"下請けのオンボーディング・契約・評価・マイルストーン払いをプラットフォームで一元管理。"},
+  {id:"09",cat:"Sales & CX",   title:"SNSコンテンツ AI スタジオ",      en:"Housing Company Social Media Autopilot",    tag:"Easy Sell",             rev:"¥15k〜¥50k",  pain:"中小工務店にマーケティング担当がいない。InstagramやYouTubeが更新できない。",       solution:"現場写真をアップするだけでAIがキャプション・ハッシュタグ・リール台本・投稿スケジュールを自動生成。"},
+  {id:"10",cat:"Design & Viz", title:"外観CG ジェネレーター",           en:"Instant Exterior Rendering Engine",         tag:"High Conviction",       rev:"¥30k〜¥100k", pain:"外観CGに¥5〜20万・3〜7日かかる。中小工務店は競合に見た目で負けている。",         solution:"平面図＋仕様を入力するだけで30分以内にフォトリアルな外観CGを生成。カラーバリエーションも即対応。"},
+  {id:"11",cat:"Sales & CX",   title:"注文住宅専用 CRM",                en:"Housing Sales Pipeline Intelligence",       tag:"Blue Ocean",            rev:"¥30k〜¥80k",  pain:"注文住宅の商談サイクルは6〜24ヶ月。フォローアップ漏れで多くのホットリードが冷える。", solution:"注文住宅の商談ステージに特化したCRM。自動リマインダー・勝率分析・ステージ別アクション提案。"},
+  {id:"12",cat:"Finance",      title:"原価管理 AI エンジン",            en:"Smart Cost Estimation & Margin Tracker",    tag:"High ROI for Client",   rev:"¥50k〜¥150k", pain:"見積もりの過小・現場の過支出で利益率が著しく下がる。原価追跡の仕組みがない。",   solution:"図面・仕様・地域からAIが建築原価を自動計算。工事中もリアルタイムで原価追跡し超過をアラート。"},
+  {id:"13",cat:"Compliance",   title:"建築確認申請アシスタント",        en:"Building Permit Application Autopilot",     tag:"Universal Pain",        rev:"¥30k〜¥80k",  pain:"確認申請書類のミス1箇所で数週間の遅延。事務スタッフの工数を大量に消費している。", solution:"プロジェクトデータから書類を自動作成・バリデーション。提出前チェックリストで差し戻しゼロへ。"},
+  {id:"14",cat:"After-Sales",  title:"定期点検スケジューラー",          en:"Post-Handover Inspection Automation",       tag:"Sticky Revenue",        rev:"¥100〜¥300/戸", pain:"1年・2年・10年の定期点検義務をトラッキングする仕組みがなく、クレームにつながっている。", solution:"竣工日から自動でリマインダーを生成。点検チェックリスト・履歴保存・オーナー通知を全自動化。"},
+  {id:"15",cat:"Sales & CX",   title:"展示場来場者アナリティクス",      en:"Model House Visitor Intelligence",          tag:"Enterprise Play",       rev:"¥80k〜¥300k", pain:"展示場に何千万も投資しているのにROIが見えない。どの部屋が刺さるか分からない。", solution:"IoTセンサー＋タブレット受付でエリア滞在時間・購買意図スコアを計測。CRMと自動連携。"},
+  {id:"16",cat:"Operations",   title:"現場写真 AI 工程チェッカー",      en:"Construction Photo Progress Verification",  tag:"Labor Crisis Solution", rev:"¥40k〜¥100k", pain:"一人の現場監督が複数現場を管理。写真報告が不正確で品質管理ができない。",         solution:"現場スタッフがアップした写真をAIが解析し、工程達成状況・品質リスクを自動レポートで提出。"},
+  {id:"17",cat:"Design & Viz", title:"インテリアコーディネート AI",     en:"AI Interior Style Matching System",         tag:"Delight Feature",       rev:"¥20k〜¥70k",  pain:"インテリア確定まで何度も打ち合わせが必要。高額な専門コンサルに頼りきり。",       solution:"10問のアンケートから3つのインテリアコンセプトをAIが自動生成。素材・色・家具の推薦付きで即提案。"},
+  {id:"18",cat:"Finance",      title:"住宅ローンシミュレーター B2B",    en:"Mortgage Scenario Tool for Sales Teams",    tag:"Sales Enabler",         rev:"¥20k〜¥50k",  pain:"資金計画の質問に担当者が即答できない。銀行の試算が返ってくるまで購買熱が冷める。", solution:"住宅価格・頭金・年収を入れると5行以上のローンシミュレーション＋住宅ローン控除を即時表示。"},
+  {id:"19",cat:"Compliance",   title:"耐震・構造 AI バリデーター",      en:"Structural & Seismic Compliance Screener",  tag:"Risk Reduction",        rev:"¥30k〜¥80k",  pain:"耐震計算ミスは法的責任に直結。構造専門家は高額で手配が遅い。",                   solution:"構造図をAIが事前スクリーニング。耐震等級・品確法への適合リスクを検出し指摘事項を出力。"},
+  {id:"20",cat:"Sales & CX",   title:"OB客 紹介マーケティングエンジン",en:"Referral & Alumni Customer Automation",     tag:"High Conviction",       rev:"¥20k〜¥60k",  pain:"OB客からの紹介は最良のリードなのに、接点を保つ仕組みが一切ない。",               solution:"OB客向けメンテナンス情報・ポイント制度・紹介トラッキングを自動化。紹介CACは広告比で5〜10分の1。"},
+];
+
+let activeFilter='all';
+
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  let count=0;
+  tools.forEach(t=>{
+    if(activeFilter!=='all'&&t.cat!==activeFilter) return;
+    count++;
+    const dc=catColor[t.cat]||'';
+    const iconSvg=icons[t.id]||icons["01"];
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`
+      <div class="card-top">
+        <div class="card-icon">${iconSvg}</div>
+        <div class="card-num">${t.id}</div>
+      </div>
+      <div class="card-cat"><span class="cat-dot ${dc}"></span>${t.cat}</div>
+      <div class="card-title">${t.title}</div>
+      <div class="card-en">${t.en}</div>
+      <div class="card-body">${t.pain}</div>
+      <div class="card-footer">
+        <span class="card-tag">${t.tag}</span>
+        <span class="card-price">${t.rev}</span>
+      </div>`;
+    div.addEventListener('click',()=>openModal(t));
+    grid.appendChild(div);
+  });
+  document.getElementById('visCount').textContent=count;
+  const cols=count<=3?count:count<=6?3:count<=8?4:5;
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+}
+
+/* ── SERVICE ROUTES ── */
+const routes={
+  "01":"sumika-proposal.html",
+};
+
+function openModal(t){
+  const dc=catColor[t.cat]||'';
+  const iconSvg=icons[t.id]||icons["01"];
+  document.getElementById('mIcon').innerHTML=iconSvg;
+  document.getElementById('mIcon').querySelector('svg').style.cssText='width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round';
+  document.getElementById('mCat').innerHTML=`<span class="cat-dot ${dc}" style="width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0"></span>${t.cat}`;
+  document.getElementById('mTitle').textContent=t.title;
+  document.getElementById('mEn').textContent=t.en;
+  document.getElementById('mPain').textContent=t.pain;
+  document.getElementById('mSolution').textContent=t.solution;
+  document.getElementById('mRev').textContent=t.rev;
+  document.getElementById('mTag').textContent=t.tag;
+  const btn=document.getElementById('mBtn');
+  if(routes[t.id]){
+    btn.textContent='このサービスを試す →';
+    btn.style.opacity='1';btn.style.cursor='pointer';
+    btn.onclick=()=>{ window.location.href=routes[t.id]; };
+  } else {
+    btn.textContent='近日公開 — Coming Soon';
+    btn.style.opacity='.45';btn.style.cursor='default';
+    btn.onclick=null;
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter=btn.dataset.cat;
+    renderGrid();
+  });
+});
+
+renderGrid();
+</script>
+</body>
+</html>

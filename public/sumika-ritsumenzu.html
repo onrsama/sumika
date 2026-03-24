@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — 立面図 → 外観CG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --red:#903030;--redbg:rgba(144,48,48,.07);--redbdr:rgba(144,48,48,.22);
+  --green:#2A7A50;--greenbdr:rgba(42,122,80,.25);
+  --serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;--r:6px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}
+.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}
+.logo-main b{color:var(--teal);font-weight:600}
+.logo-by{font-size:9.5px;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans)}
+.hm{display:flex;align-items:center;gap:6px}
+.hs{color:var(--ink4);font-size:12px}
+.hc{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.hb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;padding:0;cursor:pointer;transition:color .2s}
+.hb:hover{color:var(--ink)}
+.hb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+.page{max-width:860px;margin:0 auto;padding:36px 24px 60px}
+.ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ey::before{content:'';width:16px;height:1px;background:var(--teal)}
+.pt{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.pt em{font-style:italic;color:var(--teal)}
+.ps{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;margin-bottom:28px}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--bdr2);border-radius:var(--r);padding:52px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--tdim)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{width:52px;height:52px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.uz-icon svg{width:22px;height:22px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.uz-title{font-size:14px;font-weight:500;color:var(--ink)}
+.uz-sub{font-size:12px;color:var(--ink3);font-family:var(--jp)}
+
+/* SELECTION STAGE */
+.sel-stage{display:none}
+.sel-stage.show{display:block}
+.sel-instruction{background:var(--teal);color:#fff;border-radius:var(--r);padding:12px 18px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:var(--jp)}
+.sel-instruction svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sel-canvas-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#111;user-select:none;cursor:crosshair;line-height:0}
+#selCanvas{display:block;max-width:100%}
+.sel-info{margin-top:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.sel-size{font-size:11px;color:var(--ink3);font-family:var(--sans)}
+.sel-size span{color:var(--teal);font-weight:500}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:center;margin:24px 0 16px;padding:0 4px}
+.pipe-step{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--sans);color:var(--ink4);flex:1}
+.pipe-step.active{color:var(--teal)}.pipe-step.done{color:var(--green)}
+.pipe-num{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;transition:all .3s}
+.pipe-step.active .pipe-num{background:var(--teal);border-color:var(--teal);color:#fff}
+.pipe-step.done .pipe-num{background:var(--green);border-color:var(--green);color:#fff}
+.pipe-arrow{width:24px;height:1px;background:var(--bdr2);flex-shrink:0;margin:0 4px}
+.pipe-arrow.done{background:var(--green)}
+
+/* LOADING — proposal style */
+.gen-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;padding:40px}
+.gen-wrap.show{display:flex}
+.gen-ring{width:100px;height:100px;border-radius:50%;border:1px solid var(--bdr2);position:relative;margin-bottom:32px;display:flex;align-items:center;justify-content:center}
+.gen-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.gen-inner svg{width:26px;height:26px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.gen-title{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:28px}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px}
+.gs-item{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;transition:all .25s}
+.gs-item.act{border-color:var(--tbdr);color:var(--ink);background:var(--tdim)}
+.gs-item.done{border-color:var(--greenbdr);color:var(--ink3)}
+.gs-dot{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs-item.act .gs-dot{background:var(--teal);animation:pulse 1s ease-in-out infinite}
+.gs-item.done .gs-dot{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:44px;font-weight:300;color:var(--teal);margin-top:20px;line-height:1}
+.gen-pct small{font-family:var(--sans);font-size:13px;color:var(--ink3)}
+
+/* RESULTS */
+.results-section{display:none}
+.results-section.show{display:block}
+.result-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.result-box{border-radius:var(--r);overflow:hidden;background:var(--bg2);border:1px solid var(--bdr)}
+.result-box img{width:100%;display:block}
+.result-lbl{padding:10px 14px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-family:var(--sans);color:var(--ink3);border-top:1px solid var(--bdr);background:var(--white)}
+.result-box.highlight{border-color:var(--teal);box-shadow:0 4px 20px rgba(31,122,114,.15)}
+.result-box.highlight .result-lbl{color:var(--teal)}
+.cg-card{border-radius:var(--r);overflow:hidden;box-shadow:0 6px 32px rgba(28,36,34,.14);margin-bottom:16px}
+.cg-card img{width:100%;display:block}
+.result-ey{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.result-ey::before{content:'';width:16px;height:1px;background:var(--teal)}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn-p{background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 24px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-p:hover{background:var(--teal)}.btn-p:disabled{opacity:.35;cursor:not-allowed}
+.btn-p svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.btn-g{background:transparent;color:var(--ink2);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--bdr2);border-radius:var(--r);cursor:pointer;transition:all .2s}
+.btn-g:hover{color:var(--ink);background:var(--bg2)}
+.btn-teal{background:var(--teal);color:#fff;font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 24px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-teal:hover{background:var(--teald)}.btn-teal:disabled{opacity:.35;cursor:not-allowed}
+.btn-teal svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ERR */
+.err-box{margin-top:16px;background:var(--redbg);border:1px solid var(--redbdr);border-radius:var(--r);padding:14px 18px;font-size:13px;font-family:var(--jp);color:var(--red);line-height:1.75;display:none}
+.err-box.show{display:block}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="hm"><span class="hs">Design & Viz</span><span class="hs">›</span><span class="hc">立面図 → 外観CG</span></div>
+  <button class="hb" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>サービス一覧
+  </button>
+</header>
+
+<div class="page">
+  <div class="ey">AI Exterior CG</div>
+  <h1 class="pt">立面図から<em>外観CGを生成</em></h1>
+  <p class="ps">立面図をアップロードし、正面図の部分をドラッグで選択してください。選択した範囲の寸法線・注釈を除去してから、フォトリアルな外観CGを自動生成します。</p>
+
+  <!-- STEP 1: UPLOAD -->
+  <div id="uploadSection">
+    <div class="upload-zone" id="uploadZone" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+      <input type="file" accept="image/*" id="fileInput" onchange="onFileSelect(this.files)">
+      <div class="uz-icon"><svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg></div>
+      <div class="uz-title">立面図をアップロード</div>
+      <div class="uz-sub">クリックまたはドラッグ＆ドロップ · JPG / PNG</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: SELECTION -->
+  <div class="sel-stage" id="selStage">
+    <div class="sel-instruction">
+      <svg viewBox="0 0 24 24"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+      正面図の範囲をドラッグで選択してください
+    </div>
+    <div class="sel-canvas-wrap" id="selCanvasWrap">
+      <canvas id="selCanvas"></canvas>
+    </div>
+    <div class="sel-info">
+      <div class="sel-size" id="selSizeInfo">範囲を選択してください</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-g" onclick="clearSelection()">選択をリセット</button>
+        <button class="btn-g" onclick="resetUpload()">← 別の図面</button>
+      </div>
+    </div>
+
+    <!-- PIPELINE INDICATOR -->
+    <div class="pipeline" id="pipelineWrap" style="display:none">
+      <div class="pipe-step" id="pipeStep1"><div class="pipe-num">1</div><span>注釈除去</span></div>
+      <div class="pipe-arrow" id="pipeArrow1"></div>
+      <div class="pipe-step" id="pipeStep2"><div class="pipe-num">2</div><span>CG生成</span></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-teal" id="genBtn" onclick="startPipeline()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+        外観CGを生成する
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="gen-wrap" id="loadingSection">
+    <div class="gen-ring"><div class="gen-inner">
+      <svg viewBox="0 0 24 24"><path d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+    </div></div>
+    <h2 class="gen-title">生成中です</h2>
+    <p class="gen-sub" id="loadingSubText">注釈を除去してからCGを生成しています</p>
+    <div class="gen-steps">
+      <div class="gs-item" id="gs1"><span class="gs-dot"></span>選択範囲を切り出し中...</div>
+      <div class="gs-item" id="gs2"><span class="gs-dot"></span>寸法線・注釈を除去中...</div>
+      <div class="gs-item" id="gs3"><span class="gs-dot"></span>フォトリアルCGを生成中...</div>
+      <div class="gs-item" id="gs4"><span class="gs-dot"></span>背景・光源を合成中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctN">0</span><small>%</small></div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="err-box" id="errBox"></div>
+
+  <!-- RESULTS -->
+  <div class="results-section" id="resultsSection">
+    <div class="result-ey">生成完了 — Before / After</div>
+    <div class="result-pair">
+      <div class="result-box">
+        <img id="croppedPreviewImg" src="" alt="元の切り取り">
+        <div class="result-lbl">元の選択範囲</div>
+      </div>
+      <div class="result-box">
+        <img id="cleanedPreviewImg" src="" alt="注釈除去後">
+        <div class="result-lbl">注釈除去後</div>
+      </div>
+    </div>
+
+    <div class="result-ey" style="margin-top:8px">外観CG — フォトリアルレンダリング</div>
+    <div class="cg-card">
+      <img id="cgResultImg" src="" alt="外観CG">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-p" onclick="downloadCG()">
+        <svg viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        CG画像をダウンロード
+      </button>
+      <button class="btn-g" onclick="backToSelection()">← 選択し直す</button>
+      <button class="btn-g" onclick="startPipeline()">↻ 再生成</button>
+      <button class="btn-g" onclick="resetUpload()">最初から</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let originalDataUrl = null;
+let imgNaturalW = 0, imgNaturalH = 0;
+let displayW = 0, displayH = 0;
+let scaleX = 1, scaleY = 1;
+
+// Selection state
+let sel = {x:0, y:0, w:0, h:0, dragging:false, startX:0, startY:0, hasSelection:false};
+
+let croppedDataUrl = null;
+let cleanedUrl = null;
+let cgUrl = null;
+
+/* ── UPLOAD ── */
+function onDragOver(e){ e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function onDragLeave(){ document.getElementById('uploadZone').classList.remove('drag'); }
+function onDrop(e){ e.preventDefault(); onDragLeave(); onFileSelect(e.dataTransfer.files); }
+
+function onFileSelect(files){
+  if(!files||!files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    originalDataUrl=e.target.result;
+    const img=new Image();
+    img.onload=()=>{
+      imgNaturalW=img.naturalWidth; imgNaturalH=img.naturalHeight;
+      document.getElementById('uploadSection').classList.add('hidden');
+      initCanvas();
+      document.getElementById('selStage').classList.add('show');
+    };
+    img.src=originalDataUrl;
+  };
+  reader.readAsDataURL(files[0]);
+}
+
+function resetUpload(){
+  originalDataUrl=null; croppedDataUrl=null; cleanedUrl=null; cgUrl=null;
+  sel={x:0,y:0,w:0,h:0,dragging:false,startX:0,startY:0,hasSelection:false};
+  document.getElementById('uploadSection').classList.remove('hidden');
+  document.getElementById('selStage').classList.remove('show');
+  document.getElementById('loadingSection').classList.remove('show');
+  document.getElementById('resultsSection').classList.remove('show');
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('fileInput').value='';
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('pipelineWrap').style.display='none';
+  resetSteps();
+}
+
+function backToSelection(){
+  document.getElementById('resultsSection').classList.remove('show');
+  document.getElementById('selStage').classList.add('show');
+  document.getElementById('errBox').classList.remove('show');
+}
+
+/* ── CANVAS SELECTION ── */
+function initCanvas(){
+  const canvas=document.getElementById('selCanvas');
+  const wrap=document.getElementById('selCanvasWrap');
+  const maxW=wrap.clientWidth||800;
+  const ratio=imgNaturalH/imgNaturalW;
+  displayW=Math.min(maxW,imgNaturalW);
+  displayH=Math.round(displayW*ratio);
+  canvas.width=displayW; canvas.height=displayH;
+  scaleX=imgNaturalW/displayW; scaleY=imgNaturalH/displayH;
+  sel={x:0,y:0,w:0,h:0,dragging:false,startX:0,startY:0,hasSelection:false};
+  drawCanvas();
+
+  // Mouse events
+  canvas.onmousedown=e=>{ const p=getPos(e,canvas); sel.dragging=true; sel.startX=p.x; sel.startY=p.y; sel.x=p.x; sel.y=p.y; sel.w=0; sel.h=0; sel.hasSelection=false; drawCanvas(); };
+  window.onmousemove=e=>{ if(!sel.dragging)return; const p=getPos(e,canvas); sel.x=Math.min(p.x,sel.startX); sel.y=Math.min(p.y,sel.startY); sel.w=Math.abs(p.x-sel.startX); sel.h=Math.abs(p.y-sel.startY); drawCanvas(); };
+  window.onmouseup=()=>{ if(!sel.dragging)return; sel.dragging=false; sel.hasSelection=sel.w>10&&sel.h>10; updateSelInfo(); drawCanvas(); document.getElementById('genBtn').disabled=!sel.hasSelection; };
+
+  // Touch events
+  canvas.ontouchstart=e=>{ e.preventDefault(); const p=getPos(e.touches[0],canvas); sel.dragging=true; sel.startX=p.x; sel.startY=p.y; sel.x=p.x; sel.y=p.y; sel.w=0; sel.h=0; sel.hasSelection=false; drawCanvas(); };
+  canvas.ontouchmove=e=>{ e.preventDefault(); if(!sel.dragging)return; const p=getPos(e.touches[0],canvas); sel.x=Math.min(p.x,sel.startX); sel.y=Math.min(p.y,sel.startY); sel.w=Math.abs(p.x-sel.startX); sel.h=Math.abs(p.y-sel.startY); drawCanvas(); };
+  canvas.ontouchend=()=>{ if(!sel.dragging)return; sel.dragging=false; sel.hasSelection=sel.w>10&&sel.h>10; updateSelInfo(); drawCanvas(); document.getElementById('genBtn').disabled=!sel.hasSelection; };
+}
+
+function getPos(e,canvas){
+  const rect=canvas.getBoundingClientRect();
+  return { x:Math.max(0,Math.min(canvas.width,(e.clientX-rect.left)*(canvas.width/rect.width))), y:Math.max(0,Math.min(canvas.height,(e.clientY-rect.top)*(canvas.height/rect.height))) };
+}
+
+function drawCanvas(){
+  const canvas=document.getElementById('selCanvas');
+  const ctx=canvas.getContext('2d');
+  const img=new Image();
+  img.onload=()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    if(sel.w>2&&sel.h>2){
+      // Darken outside selection
+      ctx.fillStyle='rgba(0,0,0,0.45)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(sel.x,sel.y,sel.w,sel.h);
+      ctx.drawImage(img,sel.x*scaleX,sel.y*scaleY,sel.w*scaleX,sel.h*scaleY,sel.x,sel.y,sel.w,sel.h);
+      // Selection border
+      ctx.strokeStyle='#1F7A72'; ctx.lineWidth=2;
+      ctx.setLineDash([]);
+      ctx.strokeRect(sel.x,sel.y,sel.w,sel.h);
+      // Corner handles
+      const hs=6;
+      [[sel.x,sel.y],[sel.x+sel.w,sel.y],[sel.x,sel.y+sel.h],[sel.x+sel.w,sel.y+sel.h]].forEach(([hx,hy])=>{
+        ctx.fillStyle='#fff'; ctx.fillRect(hx-hs/2,hy-hs/2,hs,hs);
+        ctx.strokeStyle='#1F7A72'; ctx.lineWidth=1.5; ctx.strokeRect(hx-hs/2,hy-hs/2,hs,hs);
+      });
+      // Size label
+      const wPx=Math.round(sel.w*scaleX), hPx=Math.round(sel.h*scaleY);
+      ctx.font='bold 11px Sora,sans-serif';
+      const lbl=`${wPx} × ${hPx}`;
+      const tw=ctx.measureText(lbl).width;
+      const lx=sel.x+sel.w/2-tw/2-6, ly=sel.y+sel.h+18;
+      ctx.fillStyle='rgba(31,122,114,.88)'; ctx.fillRect(lx,ly-13,tw+12,18);
+      ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.fillText(lbl,lx+6,ly);
+    }
+  };
+  img.src=originalDataUrl;
+}
+
+function updateSelInfo(){
+  const el=document.getElementById('selSizeInfo');
+  if(sel.hasSelection){
+    const wPx=Math.round(sel.w*scaleX), hPx=Math.round(sel.h*scaleY);
+    el.innerHTML=`選択済み: <span>${wPx} × ${hPx} px</span>`;
+  } else {
+    el.textContent='範囲を選択してください';
+  }
+}
+
+function clearSelection(){
+  sel={x:0,y:0,w:0,h:0,dragging:false,startX:0,startY:0,hasSelection:false};
+  drawCanvas(); updateSelInfo();
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('selSizeInfo').textContent='範囲を選択してください';
+}
+
+/* ── CROP ── */
+function cropSelection(){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const cx=Math.round(sel.x*scaleX), cy=Math.round(sel.y*scaleY);
+      const cw=Math.round(sel.w*scaleX), ch=Math.round(sel.h*scaleY);
+      const canvas=document.createElement('canvas');
+      canvas.width=cw; canvas.height=ch;
+      canvas.getContext('2d').drawImage(img,cx,cy,cw,ch,0,0,cw,ch);
+      resolve(canvas.toDataURL('image/jpeg',0.92));
+    };
+    img.src=originalDataUrl;
+  });
+}
+
+/* ── LOADING STEPS ── */
+function resetSteps(){
+  ['gs1','gs2','gs3','gs4'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act','done');});
+  const pn=document.getElementById('pctN');if(pn)pn.textContent=0;
+}
+function setStep(idx, pct){
+  ['gs1','gs2','gs3','gs4'].forEach((id,i)=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.classList.remove('act','done');
+    if(i+1<idx)el.classList.add('done');
+    else if(i+1===idx)el.classList.add('act');
+  });
+  document.getElementById('pctN').textContent=pct;
+}
+function setPipe(step, state){
+  const el=document.getElementById('pipeStep'+step);
+  if(!el)return;
+  el.classList.remove('active','done');
+  if(state==='active')el.classList.add('active');
+  if(state==='done')el.classList.add('done');
+  if(step>1){const arr=document.getElementById('pipeArrow'+(step-1));if(arr)arr.classList.toggle('done',state==='done'||state==='active');}
+}
+
+/* ── MAIN PIPELINE ── */
+async function startPipeline(){
+  if(!sel.hasSelection){alert('範囲を選択してください');return;}
+
+  // Hide selection, show loading
+  document.getElementById('selStage').classList.remove('show');
+  document.getElementById('resultsSection').classList.remove('show');
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('loadingSection').classList.add('show');
+  document.getElementById('pipelineWrap').style.display='flex';
+  resetSteps();
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  try{
+    // Step 1: Crop
+    setStep(1,8);
+    croppedDataUrl = await cropSelection();
+
+    // Step 2: Clean annotations via flux-kontext-pro
+    setStep(2,20);
+    setPipe(1,'active');
+    cleanedUrl = await cleanAnnotations(croppedDataUrl);
+    setPipe(1,'done'); setPipe(2,'active');
+
+    // Step 3: Generate CG via flux-2-pro
+    setStep(3,55);
+    cgUrl = await renderCG(cleanedUrl);
+    setPipe(2,'done');
+
+    setStep(4,98);
+    await new Promise(r=>setTimeout(r,300));
+    document.getElementById('pctN').textContent=100;
+    ['gs1','gs2','gs3','gs4'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('act');el.classList.add('done');}});
+
+    setTimeout(()=>showResults(),600);
+
+  }catch(err){
+    document.getElementById('loadingSection').classList.remove('show');
+    document.getElementById('selStage').classList.add('show');
+    const eb=document.getElementById('errBox');
+    eb.innerHTML='<svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:middle;margin-right:6px" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z"/></svg>エラー: '+err.message;
+    eb.classList.add('show');
+    resetSteps();
+  }
+}
+
+function showResults(){
+  document.getElementById('loadingSection').classList.remove('show');
+  document.getElementById('croppedPreviewImg').src=croppedDataUrl;
+  document.getElementById('cleanedPreviewImg').src=cleanedUrl;
+  document.getElementById('cgResultImg').src=cgUrl;
+  document.getElementById('resultsSection').classList.add('show');
+  document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ── CLEAN ANNOTATIONS — flux-2-pro ── */
+async function cleanAnnotations(dataUrl){
+  const b64=dataUrl.split(',')[1];
+  const mime=dataUrl.split(';')[0].split(':')[1]||'image/jpeg';
+  const r=await fetch('/api/flux2pro',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({input:{
+      prompt:'Remove all dimension lines, measurement numbers, dimension arrows, text labels, title block text, axis annotations, leader lines, and all technical drawing annotations from this architectural elevation drawing. Keep only the clean architectural outline: roof, walls, window openings, door openings, structural shapes. White background, clean black lines only. Do not change the building shape or proportions.',
+      input_images:['data:'+mime+';base64,'+b64],
+      aspect_ratio:'match_input_image',
+      output_format:'jpg',
+      output_quality:90,
+      safety_tolerance:5,
+      prompt_upsampling:false,
+    }})
+  });
+  const created=await r.json();
+  if(created.error)throw new Error('注釈除去: '+created.error);
+  if(!created.id)throw new Error('注釈除去: No prediction ID — '+JSON.stringify(created).slice(0,200));
+  return await poll(created.id);
+}
+
+/* ── RENDER CG — flux-2-pro with cleaned image ── */
+async function renderCG(imageUrl){
+  const r=await fetch('/api/flux2pro',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({input:{
+      prompt:'Convert this architectural elevation line drawing into a photorealistic exterior CG rendering of a Japanese residential house. Keep the exact same building shape, roof form, facade layout, window positions, and door placements. Render as a real photograph: sunny day, soft blue sky with white clouds, green lawn in foreground, warm natural sunlight with soft shadows. Professional architectural visualization, 8K quality.',
+      input_images:[imageUrl],
+      aspect_ratio:'16:9',
+      output_format:'jpg',
+      output_quality:95,
+      safety_tolerance:5,
+      prompt_upsampling:false,
+    }})
+  });
+  const created=await r.json();
+  if(created.error)throw new Error('CG生成: '+created.error);
+  if(!created.id)throw new Error('CG生成: No prediction ID — '+JSON.stringify(created).slice(0,200));
+  return await poll(created.id);
+}
+
+async function poll(id, max=180000){
+  const start=Date.now();
+  while(Date.now()-start<max){
+    await new Promise(r=>setTimeout(r,2500));
+    const d=await(await fetch('/api/replicate/'+id)).json();
+    if(d.status==='succeeded') return Array.isArray(d.output)?d.output[0]:d.output;
+    if(d.status==='failed') throw new Error(d.error||'Prediction failed');
+  }
+  throw new Error('タイムアウト: 処理に時間がかかりすぎています');
+}
+
+function downloadCG(){
+  if(!cgUrl)return;
+  const a=document.createElement('a');a.href=cgUrl;a.download='exterior_CG.jpg';a.target='_blank';a.click();
+}
+</script>
+</body>
+</html>

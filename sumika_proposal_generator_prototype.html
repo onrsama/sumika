@@ -1,0 +1,716 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500;700&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C4973A;--gold-l:#D4AD5A;--gold-dim:rgba(196,151,58,0.12);--gold-dim2:rgba(196,151,58,0.06);
+  --bg:#08080C;--bg2:#0E0E14;--bg3:#13131A;--bg4:#18181F;
+  --text:#F0EBE1;--text2:#A09890;--text3:#5A5A6E;--text4:#3A3A4A;
+  --border:rgba(255,255,255,0.07);--border2:rgba(196,151,58,0.3);--border3:rgba(255,255,255,0.12);
+  --success:#4CAF7D;--danger:#E85D5D;
+  --serif:'Cormorant Garamond',serif;
+  --sans:'Sora',sans-serif;
+  --jp:'Noto Sans JP',sans-serif;
+  --radius:6px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+input,select,textarea{font-family:var(--jp)}
+
+/* ── SHELL ── */
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:32px 24px;display:flex;flex-direction:column;gap:0;position:sticky;top:0;height:100vh;overflow:hidden}
+.logo{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--text);letter-spacing:.05em;margin-bottom:36px}
+.logo span{color:var(--gold)}
+.step-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+.step-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;transition:all .25s;position:relative}
+.step-item.active{background:var(--gold-dim);border:1px solid var(--border2)}
+.step-item.done{opacity:.7}
+.step-item.locked{opacity:.3;pointer-events:none}
+.step-dot{width:28px;height:28px;border-radius:50%;border:1px solid var(--text4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0;transition:all .25s}
+.step-item.active .step-dot{border-color:var(--gold);background:var(--gold);color:#08080C}
+.step-item.done .step-dot{border-color:var(--success);background:rgba(76,175,125,.15);color:var(--success)}
+.step-label{font-size:12px;font-weight:500;color:var(--text3);line-height:1.3;transition:color .25s}
+.step-sub{font-size:10px;color:var(--text4);font-family:var(--jp);margin-top:1px}
+.step-item.active .step-label{color:var(--text)}
+.step-connector{width:1px;height:16px;background:var(--border);margin-left:25px}
+.sidebar-footer{border-top:1px solid var(--border);padding-top:20px;margin-top:auto}
+.sidebar-badge{background:var(--gold-dim2);border:1px solid var(--border2);border-radius:4px;padding:10px 14px}
+.sb-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.sb-body{font-size:11px;color:var(--text2);font-family:var(--jp);line-height:1.7}
+
+/* ── MAIN ── */
+.main{padding:48px 60px;max-width:860px}
+.page-header{margin-bottom:40px}
+.page-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.page-eyebrow::before{content:'';width:16px;height:1px;background:var(--gold)}
+.page-title{font-family:var(--serif);font-size:36px;font-weight:300;color:var(--text);line-height:1.2}
+.page-title em{font-style:italic;color:var(--gold)}
+.page-sub{font-size:13px;color:var(--text2);margin-top:8px;font-family:var(--jp);line-height:1.8}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{margin-bottom:40px}
+.progress-track{height:2px;background:var(--bg3);border-radius:1px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:1px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.progress-labels{display:flex;justify-content:space-between;margin-top:8px}
+.progress-labels span{font-size:10px;color:var(--text4);letter-spacing:.05em}
+.progress-labels span.active{color:var(--gold)}
+
+/* ── FORM PANEL ── */
+.panel{animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.section-title svg{opacity:.5}
+
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.field-group.full{grid-template-columns:1fr}
+.field-group.trio{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.req{color:var(--gold);font-size:10px}
+.field input,.field select,.field textarea{
+  background:var(--bg3);border:1px solid var(--border3);border-radius:var(--radius);
+  padding:11px 14px;color:var(--text);font-size:13px;outline:none;
+  transition:border-color .2s,background .2s;width:100%
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:var(--bg4)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text4)}
+.field select option{background:var(--bg3)}
+.field textarea{resize:vertical;min-height:90px;line-height:1.7;font-family:var(--jp)}
+.field-hint{font-size:10px;color:var(--text3);font-family:var(--jp)}
+
+/* CHIP SELECT */
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{padding:7px 16px;border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;background:transparent;font-family:var(--jp)}
+.chip.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--text)}
+.chip:hover:not(.selected){border-color:var(--border3);color:var(--text)}
+
+/* SLIDER */
+.slider-wrap{margin-top:4px}
+.slider-val{font-size:18px;font-family:var(--serif);font-weight:300;color:var(--gold);margin-bottom:8px}
+.slider-val small{font-size:12px;color:var(--text3);font-family:var(--sans)}
+input[type=range]{width:100%;appearance:none;height:3px;background:var(--bg4);border-radius:2px;border:none;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);cursor:pointer}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:12px;align-items:center;margin-top:36px;padding-top:24px;border-top:1px solid var(--border)}
+.btn-primary{background:var(--gold);color:#08080C;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:none;border-radius:var(--radius);transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--gold-l);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--text2);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:12px 20px;border:1px solid var(--border);border-radius:var(--radius);transition:all .2s}
+.btn-ghost:hover{border-color:var(--border3);color:var(--text)}
+.form-note{font-size:11px;color:var(--text3);font-family:var(--jp);line-height:1.7}
+
+/* ── GENERATING SCREEN ── */
+.gen-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:0}
+.gen-orb-wrap{position:relative;width:120px;height:120px;margin-bottom:36px}
+.gen-orb{width:120px;height:120px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.gen-orb::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,var(--gold-dim),transparent,var(--gold-dim));animation:spin 3s linear infinite}
+.gen-orb-inner{width:80px;height:80px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;z-index:1;font-size:28px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--text);margin-bottom:10px}
+.gen-sub{font-size:13px;color:var(--text2);font-family:var(--jp);line-height:1.9;max-width:400px;margin-bottom:32px}
+.gen-steps{display:flex;flex-direction:column;gap:10px;width:100%;max-width:380px}
+.gen-step-item{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:var(--jp);color:var(--text2);text-align:left}
+.gen-step-item.active{border-color:var(--border2);color:var(--text)}
+.gen-step-item.done{border-color:rgba(76,175,125,.3);color:var(--text3)}
+.gen-dot{width:8px;height:8px;border-radius:50%;background:var(--text4);flex-shrink:0;transition:background .3s}
+.gen-step-item.active .gen-dot{background:var(--gold);animation:blink 1s ease-in-out infinite}
+.gen-step-item.done .gen-dot{background:var(--success)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:48px;font-weight:300;color:var(--gold);margin-top:24px}
+.gen-pct small{font-size:14px;color:var(--text3);font-family:var(--sans)}
+
+/* ── PROPOSAL OUTPUT ── */
+.proposal{animation:fadeUp .4s ease}
+.proposal-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.proposal-badge{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.3);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--success);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.proposal-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success)}
+.btn-actions{display:flex;gap:10px}
+.btn-sm{padding:8px 16px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--radius);transition:all .2s}
+.btn-sm.outline{background:transparent;border:1px solid var(--border3);color:var(--text2)}
+.btn-sm.outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm.solid{background:var(--gold);border:none;color:#08080C;font-weight:600}
+.btn-sm.solid:hover{background:var(--gold-l)}
+
+/* PROPOSAL DOC */
+.proposal-doc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.doc-header{padding:40px 48px;background:linear-gradient(135deg,var(--bg3) 0%,var(--bg2) 100%);border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
+.doc-logo-area{display:flex;flex-direction:column;gap:4px}
+.doc-logo{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--text);letter-spacing:.05em}
+.doc-logo span{color:var(--gold)}
+.doc-tagline{font-size:10px;color:var(--text3);font-family:var(--jp);letter-spacing:.05em}
+.doc-meta{text-align:right}
+.doc-proposal-title{font-family:var(--serif);font-size:24px;font-weight:300;color:var(--gold);margin-bottom:4px;font-style:italic}
+.doc-date{font-size:11px;color:var(--text3);font-family:var(--jp)}
+.doc-to{font-size:13px;color:var(--text);font-family:var(--jp);margin-top:6px;font-weight:500}
+
+.doc-body{padding:40px 48px;display:flex;flex-direction:column;gap:32px}
+.doc-section{border-left:2px solid var(--gold);padding-left:20px}
+.doc-section-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;font-family:var(--sans)}
+.doc-text{font-size:13px;color:var(--text2);line-height:1.95;font-family:var(--jp);white-space:pre-wrap}
+.doc-plan-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--text);margin-bottom:6px}
+.doc-plan-sub{font-size:12px;color:var(--text3);font-family:var(--jp)}
+
+/* Cost table */
+.cost-table{width:100%;border-collapse:collapse;font-family:var(--jp);font-size:13px}
+.cost-table th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-family:var(--sans);font-weight:500}
+.cost-table td{padding:10px 0;border-bottom:1px solid var(--border);color:var(--text2)}
+.cost-table td:last-child{text-align:right;color:var(--text);font-weight:500}
+.cost-table tr.total td{color:var(--gold);font-size:15px;font-family:var(--serif);border-bottom:none;padding-top:14px}
+
+/* Subsidy pills */
+.subsidy-list{display:flex;flex-direction:column;gap:10px}
+.subsidy-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px}
+.sub-name{font-size:13px;font-weight:500;color:var(--text);font-family:var(--jp);margin-bottom:3px}
+.sub-cond{font-size:11px;color:var(--text3);font-family:var(--jp)}
+.sub-amount{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--gold);white-space:nowrap}
+
+/* Timeline */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:grid;grid-template-columns:80px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tl-item:last-child{border-bottom:none}
+.tl-period{font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.05em;padding-top:2px;font-family:var(--sans)}
+.tl-event{font-size:13px;color:var(--text2);font-family:var(--jp);line-height:1.6}
+
+/* Footer doc */
+.doc-footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
+.doc-footer-brand{font-family:var(--serif);font-size:14px;color:var(--text3)}
+.doc-footer-brand span{color:var(--gold)}
+.doc-footer-note{font-size:10px;color:var(--text4);font-family:var(--jp)}
+
+/* REGEN */
+.regen-btn{background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;transition:all .2s;display:flex;align-items:center;gap:6px}
+.regen-btn:hover{border-color:var(--border2);color:var(--gold)}
+.error-box{background:rgba(232,93,93,.08);border:1px solid rgba(232,93,93,.25);border-radius:var(--radius);padding:16px 20px;font-size:13px;font-family:var(--jp);color:#E85D5D;line-height:1.7}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--text4);border-radius:2px}
+
+@media(max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:24px 20px}
+  .field-group,.field-group.trio{grid-template-columns:1fr}
+  .doc-header{grid-template-columns:1fr}
+  .doc-body{padding:24px 20px}
+  .doc-header{padding:24px 20px}
+  .doc-footer{padding:16px 20px;flex-direction:column;gap:6px;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">SUMI<span>KA</span></div>
+    <div class="step-nav" id="stepNav"></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-badge">
+        <div class="sb-title">AI Engine</div>
+        <div class="sb-body">Claude 3.5 Sonnet搭載。日本語に特化した住宅提案AIです。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainArea">
+    <!-- content injected by JS -->
+  </div>
+
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  step: 1,  // 1,2,3 = form steps; 4 = generating; 5 = result
+  form: {
+    // Step 1: Customer
+    clientName:'', clientAge:'', familyComp:'', familyCount:'2',
+    // Step 2: Land & Building
+    landArea:'120', buildingArea:'90', orientation:'南', budget:'3500',
+    style:[], houseType:'2階建て',
+    // Step 3: Priorities
+    priorities:[], zeh:'希望する', notes:''
+  },
+  result: null,
+  error: null
+};
+
+const STEPS = [
+  {id:1, label:'顧客基本情報', sub:'Customer Info'},
+  {id:2, label:'土地・建物情報', sub:'Land & Building'},
+  {id:3, label:'ご希望・優先事項', sub:'Preferences'},
+  {id:4, label:'AI生成中', sub:'Generating'},
+  {id:5, label:'提案書', sub:'Proposal Output'},
+];
+
+// ─── RENDER SIDEBAR ──────────────────────────────────────────────────────────
+function renderSidebar(){
+  const nav = document.getElementById('stepNav');
+  let html = '';
+  STEPS.forEach((s,i)=>{
+    const st = s.id < state.step ? 'done' : s.id === state.step ? 'active' : 'locked';
+    const icon = st==='done' ? '✓' : s.id;
+    html += `<div class="step-item ${st}" onclick="jumpStep(${s.id})">
+      <div class="step-dot">${icon}</div>
+      <div><div class="step-label">${s.label}</div><div class="step-sub">${s.sub}</div></div>
+    </div>`;
+    if(i < STEPS.length-1) html += '<div class="step-connector"></div>';
+  });
+  nav.innerHTML = html;
+}
+function jumpStep(id){ if(id < state.step){ state.step=id; render(); } }
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render(){
+  renderSidebar();
+  const main = document.getElementById('mainArea');
+  if(state.step===1) main.innerHTML = renderStep1();
+  else if(state.step===2) main.innerHTML = renderStep2();
+  else if(state.step===3) main.innerHTML = renderStep3();
+  else if(state.step===4) main.innerHTML = renderGenerating();
+  else if(state.step===5) main.innerHTML = renderResult();
+  attachListeners();
+}
+
+// ─── STEP 1 ──────────────────────────────────────────────────────────────────
+function renderStep1(){
+  return `
+  <div class="panel">
+    <div class="page-header">
+      <div class="page-eyebrow">Step 1 of 3</div>
+      <h1 class="page-title">顧客<em>基本情報</em></h1>
+      <p class="page-sub">お客様の基本情報を入力してください。AIがパーソナライズされた提案書を生成します。</p>
+    </div>
+    ${progressBar(1)}
+    <div class="section-title">👤 お客様情報</div>
+    <div class="field-group">
+      <div class="field">
+        <label>お客様名（様付け不要）<span class="req">*</span></label>
+        <input type="text" id="clientName" value="${state.form.clientName}" placeholder="例：山田 太郎">
+      </div>
+      <div class="field">
+        <label>ご年齢</label>
+        <input type="number" id="clientAge" value="${state.form.clientAge}" placeholder="例：35">
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:24px">👨‍👩‍👧 ご家族構成</div>
+    <div class="field-group full">
+      <div class="field">
+        <label>家族構成<span class="req">*</span></label>
+        <div class="chip-group" id="familyComp">
+          ${['ご夫婦のみ','ご夫婦＋お子様1人','ご夫婦＋お子様2人','ご夫婦＋お子様3人以上','ご両親との同居','3世代同居'].map(c=>`<button class="chip ${state.form.familyComp===c?'selected':''}" data-grp="familyComp" data-val="${c}">${c}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextStep(1)">次へ：土地情報を入力 →</button>
+      <span class="form-note">※ 入力内容はAI生成にのみ使用されます</span>
+    </div>
+  </div>`;
+}
+
+// ─── STEP 2 ──────────────────────────────────────────────────────────────────
+function renderStep2(){
+  const styles=['シンプルモダン','ナチュラル','和モダン','北欧スタイル','インダストリアル','プロヴァンス'];
+  return `
+  <div class="panel">
+    <div class="page-header">
+      <div class="page-eyebrow">Step 2 of 3</div>
+      <h1 class="page-title">土地・建物<em>情報</em></h1>
+      <p class="page-sub">土地の条件と建物の概要を教えてください。</p>
+    </div>
+    ${progressBar(2)}
+    <div class="section-title">🏡 土地情報</div>
+    <div class="field-group trio">
+      <div class="field">
+        <label>土地面積（㎡）</label>
+        <div class="slider-wrap">
+          <div class="slider-val" id="landAreaVal">${state.form.landArea}<small> ㎡</small></div>
+          <input type="range" id="landArea" min="60" max="300" step="5" value="${state.form.landArea}" oninput="updSlider('landArea','landAreaVal','㎡')">
+        </div>
+      </div>
+      <div class="field">
+        <label>延床面積（㎡）</label>
+        <div class="slider-wrap">
+          <div class="slider-val" id="buildingAreaVal">${state.form.buildingArea}<small> ㎡</small></div>
+          <input type="range" id="buildingArea" min="60" max="200" step="5" value="${state.form.buildingArea}" oninput="updSlider('buildingArea','buildingAreaVal','㎡')">
+        </div>
+      </div>
+      <div class="field">
+        <label>総予算（万円）</label>
+        <div class="slider-wrap">
+          <div class="slider-val" id="budgetVal">${Number(state.form.budget).toLocaleString()}<small> 万円</small></div>
+          <input type="range" id="budget" min="1500" max="8000" step="100" value="${state.form.budget}" oninput="updSliderBudget()">
+        </div>
+      </div>
+    </div>
+    <div class="field-group" style="margin-top:16px">
+      <div class="field">
+        <label>日当たり・方角</label>
+        <select id="orientation">
+          ${['南','東','西','北','南東','南西','東南角地','南北通り'].map(o=>`<option ${state.form.orientation===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>建物タイプ</label>
+        <select id="houseType">
+          ${['平屋','2階建て','3階建て','二世帯住宅'].map(o=>`<option ${state.form.houseType===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:24px">🎨 ご希望のスタイル（複数選択可）</div>
+    <div class="field-group full">
+      <div class="field">
+        <div class="chip-group" id="style">
+          ${styles.map(c=>`<button class="chip ${state.form.style.includes(c)?'selected':''}" data-grp="style" data-val="${c}">${c}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextStep(2)">次へ：ご希望を入力 →</button>
+      <button class="btn-ghost" onclick="prevStep()">← 戻る</button>
+    </div>
+  </div>`;
+}
+
+// ─── STEP 3 ──────────────────────────────────────────────────────────────────
+function renderStep3(){
+  const prios=['省エネ・ZEH','コストパフォーマンス','デザイン重視','開放的なLDK','収納の多さ','子どもの安全','在宅ワーク対応','老後を見据えた設計'];
+  return `
+  <div class="panel">
+    <div class="page-header">
+      <div class="page-eyebrow">Step 3 of 3</div>
+      <h1 class="page-title">ご希望・<em>優先事項</em></h1>
+      <p class="page-sub">最後の仕上げです。お客様のこだわりをAIに伝えましょう。</p>
+    </div>
+    ${progressBar(3)}
+    <div class="section-title">⭐ 優先事項（複数選択可）</div>
+    <div class="field-group full">
+      <div class="field">
+        <div class="chip-group" id="priorities">
+          ${prios.map(c=>`<button class="chip ${state.form.priorities.includes(c)?'selected':''}" data-grp="priorities" data-val="${c}">${c}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:24px">🌿 ZEH・省エネへのご関心</div>
+    <div class="field-group full">
+      <div class="field">
+        <div class="chip-group" id="zeh">
+          ${['希望する','興味はあるが予算次第','特にこだわらない'].map(c=>`<button class="chip ${state.form.zeh===c?'selected':''}" data-grp="zehSingle" data-val="${c}">${c}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:24px">📝 その他ご要望・メモ</div>
+    <div class="field-group full">
+      <div class="field">
+        <textarea id="notes" placeholder="例：将来的に太陽光パネルを設置したい。リビングから庭が見える設計にしたい。ペットが1匹います。">${state.form.notes}</textarea>
+        <span class="field-hint">自由にご記入ください。AIが提案内容に反映します。</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" id="generateBtn" onclick="generate()">✦ AIで提案書を生成する</button>
+      <button class="btn-ghost" onclick="prevStep()">← 戻る</button>
+    </div>
+  </div>`;
+}
+
+// ─── GENERATING SCREEN ───────────────────────────────────────────────────────
+function renderGenerating(){
+  return `
+  <div class="gen-screen panel">
+    <div class="gen-orb-wrap">
+      <div class="gen-orb">
+        <div class="gen-orb-inner">✦</div>
+      </div>
+    </div>
+    <h2 class="gen-title">AI が提案書を生成中</h2>
+    <p class="gen-sub">入力いただいた情報をもとに、お客様専用の提案書を作成しています。<br>しばらくお待ちください。</p>
+    <div class="gen-steps" id="genSteps">
+      <div class="gen-step-item" id="gs1"><span class="gen-dot"></span>顧客プロフィールを分析中...</div>
+      <div class="gen-step-item" id="gs2"><span class="gen-dot"></span>間取りプランを検討中...</div>
+      <div class="gen-step-item" id="gs3"><span class="gen-dot"></span>概算見積りを計算中...</div>
+      <div class="gen-step-item" id="gs4"><span class="gen-dot"></span>補助金情報を照合中...</div>
+      <div class="gen-step-item" id="gs5"><span class="gen-dot"></span>提案書フォーマットを仕上げ中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctNum">0</span><small>%</small></div>
+  </div>`;
+}
+
+// ─── RESULT ──────────────────────────────────────────────────────────────────
+function renderResult(){
+  const r = state.result;
+  if(state.error){
+    return `<div class="panel">
+      <div class="page-header"><div class="page-eyebrow">エラー</div><h1 class="page-title">生成に<em>失敗</em>しました</h1></div>
+      <div class="error-box">${state.error}<br><br>入力内容を確認の上、再度お試しください。</div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="generate()">再試行する</button>
+        <button class="btn-ghost" onclick="goBack()">← フォームに戻る</button>
+      </div>
+    </div>`;
+  }
+  if(!r) return '';
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+  return `
+  <div class="proposal">
+    <div class="proposal-topbar">
+      <div>
+        <div class="page-eyebrow">提案書が完成しました</div>
+        <h1 class="page-title" style="font-size:28px">${state.form.clientName}様<em>専用</em>提案書</h1>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+        <div class="proposal-badge">AI生成完了</div>
+        <div class="btn-actions">
+          <button class="btn-sm outline regen-btn" onclick="generate()">↻ 再生成</button>
+          <button class="btn-sm outline" onclick="window.print()">🖨 印刷</button>
+          <button class="btn-sm solid" onclick="goBack()">新しい提案書</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="proposal-doc" id="proposalDoc">
+      <!-- HEADER -->
+      <div class="doc-header">
+        <div class="doc-logo-area">
+          <div class="doc-logo">SUMI<span>KA</span></div>
+          <div class="doc-tagline">住宅会社専用AIプラットフォーム</div>
+        </div>
+        <div class="doc-meta">
+          <div class="doc-proposal-title">ご提案書</div>
+          <div class="doc-date">作成日：${dateStr}</div>
+          <div class="doc-to">${state.form.clientName} 様</div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="doc-body">
+        <!-- Greeting -->
+        <div class="doc-section">
+          <div class="doc-section-title">ご挨拶</div>
+          <div class="doc-text">${r.greeting||''}</div>
+        </div>
+        <!-- Plan Name -->
+        <div class="doc-section">
+          <div class="doc-section-title">ご提案プラン</div>
+          <div class="doc-plan-title">${r.planName||''}</div>
+          <div class="doc-plan-sub">${r.planSub||''}</div>
+          <div class="doc-text" style="margin-top:14px">${r.planDesc||''}</div>
+        </div>
+        <!-- Madori -->
+        <div class="doc-section">
+          <div class="doc-section-title">間取りの特徴</div>
+          <div class="doc-text">${r.madori||''}</div>
+        </div>
+        <!-- Cost -->
+        <div class="doc-section">
+          <div class="doc-section-title">概算見積もり</div>
+          <table class="cost-table">
+            <tr><th>項目</th><th>内容</th><th>概算金額</th></tr>
+            ${(r.costs||[]).map(c=>`<tr><td>${c.item}</td><td style="color:var(--text3);font-size:12px">${c.note}</td><td>${c.amount}</td></tr>`).join('')}
+            <tr class="total"><td colspan="2">合計（税込）</td><td>${r.totalCost||''}</td></tr>
+          </table>
+        </div>
+        <!-- Subsidies -->
+        <div class="doc-section">
+          <div class="doc-section-title">適用可能な補助金・優遇制度</div>
+          <div class="subsidy-list">
+            ${(r.subsidies||[]).map(s=>`
+            <div class="subsidy-item">
+              <div><div class="sub-name">${s.name}</div><div class="sub-cond">${s.cond}</div></div>
+              <div class="sub-amount">${s.amount}</div>
+            </div>`).join('')}
+          </div>
+          <div class="doc-text" style="margin-top:14px">${r.subsidyNote||''}</div>
+        </div>
+        <!-- Timeline -->
+        <div class="doc-section">
+          <div class="doc-section-title">スケジュール（目安）</div>
+          <div class="timeline">
+            ${(r.timeline||[]).map(t=>`<div class="tl-item"><div class="tl-period">${t.period}</div><div class="tl-event">${t.event}</div></div>`).join('')}
+          </div>
+        </div>
+        <!-- Message -->
+        <div class="doc-section">
+          <div class="doc-section-title">担当者より</div>
+          <div class="doc-text">${r.message||''}</div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="doc-footer">
+        <div class="doc-footer-brand">SUMI<span>KA</span> — AI Proposal Engine</div>
+        <div class="doc-footer-note">本提案書はAIが生成した参考資料です。最終的な金額・仕様は担当者との打合せにてご確認ください。</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function progressBar(step){
+  const pct = Math.round((step/3)*100);
+  const labels = ['顧客情報','土地・建物','希望事項'];
+  return `<div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-labels">${labels.map((l,i)=>`<span class="${i+1<=step?'active':''}">${l}</span>`).join('')}</div>
+  </div>`;
+}
+function updSlider(id,valId,unit){
+  const v = document.getElementById(id).value;
+  state.form[id] = v;
+  document.getElementById(valId).innerHTML = Number(v).toLocaleString()+'<small> '+unit+'</small>';
+}
+function updSliderBudget(){
+  const v = document.getElementById('budget').value;
+  state.form.budget = v;
+  document.getElementById('budgetVal').innerHTML = Number(v).toLocaleString()+'<small> 万円</small>';
+}
+
+// ─── LISTENERS ───────────────────────────────────────────────────────────────
+function attachListeners(){
+  // text inputs
+  ['clientName','clientAge','landArea','buildingArea','budget','notes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',e=>{ state.form[id]=e.target.value; });
+  });
+  ['orientation','houseType'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('change',e=>{ state.form[id]=e.target.value; });
+  });
+  // chips
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const grp=c.dataset.grp; const val=c.dataset.val;
+      if(grp==='familyComp'||grp==='zehSingle'){
+        state.form[grp==='zehSingle'?'zeh':'familyComp']=val;
+        document.querySelectorAll(`[data-grp="${grp}"]`).forEach(x=>x.classList.remove('selected'));
+        c.classList.add('selected');
+      } else {
+        const arr=state.form[grp];
+        const idx=arr.indexOf(val);
+        if(idx>-1) arr.splice(idx,1); else arr.push(val);
+        c.classList.toggle('selected');
+      }
+    });
+  });
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function nextStep(from){
+  if(from===1 && !state.form.clientName){ alert('お客様名を入力してください'); return; }
+  if(from===1 && !state.form.familyComp){ alert('家族構成を選択してください'); return; }
+  state.step = from+1;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function prevStep(){ state.step--; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function goBack(){ state.step=1; state.result=null; state.error=null; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+// ─── GENERATE ─────────────────────────────────────────────────────────────────
+async function generate(){
+  state.step=4; state.result=null; state.error=null;
+  render();
+  // Animate gen steps
+  const steps=['gs1','gs2','gs3','gs4','gs5'];
+  const pcts=[15,35,55,75,90];
+  let idx=0;
+  function tick(){
+    if(idx>0) document.getElementById(steps[idx-1])?.classList.replace('active','done');
+    if(idx<steps.length){
+      document.getElementById(steps[idx])?.classList.add('active');
+      document.getElementById('pctNum').textContent=pcts[idx];
+      idx++; setTimeout(tick,900);
+    }
+  }
+  tick();
+  const f=state.form;
+  const prompt=`あなたは日本の住宅会社の優秀な営業担当者です。以下の顧客情報をもとに、非常にプロフェッショナルで温かみのある住宅提案書の内容をJSONで生成してください。
+
+顧客情報:
+- お名前: ${f.clientName}様
+- ご年齢: ${f.clientAge||'不明'}歳
+- 家族構成: ${f.familyComp}
+- 土地面積: ${f.landArea}㎡
+- 延床面積: ${f.buildingArea}㎡  
+- 日当たり: ${f.orientation}向き
+- 建物タイプ: ${f.houseType}
+- 総予算: ${Number(f.budget).toLocaleString()}万円
+- 希望スタイル: ${f.style.length?f.style.join('・'):'特になし'}
+- 優先事項: ${f.priorities.length?f.priorities.join('・'):'特になし'}
+- ZEH希望: ${f.zeh}
+- その他要望: ${f.notes||'なし'}
+
+以下のJSON形式で返してください（他のテキストは一切含めないこと）:
+{
+  "greeting": "お客様への丁寧な挨拶文（3〜4文）",
+  "planName": "魅力的なプラン名（例：「陽だまりの家 〜光と風が巡る暮らし〜」）",
+  "planSub": "サブタイトル（20文字以内）",
+  "planDesc": "プランの特徴説明（3〜4文）",
+  "madori": "間取りの詳細説明（具体的な部屋数・配置・工夫点を含む、4〜5文）",
+  "costs": [
+    {"item": "建築工事費", "note": "基礎〜内装仕上げ", "amount": "¥0,000万円"},
+    {"item": "設備工事費", "note": "キッチン・浴室・給排水", "amount": "¥000万円"},
+    {"item": "外構工事費", "note": "玄関アプローチ・駐車場", "amount": "¥000万円"},
+    {"item": "諸費用・設計費", "note": "設計監理・申請費用", "amount": "¥000万円"}
+  ],
+  "totalCost": "合計額（例：¥3,480万円（税込））",
+  "subsidies": [
+    {"name": "補助金名", "cond": "適用条件・概要（1文）", "amount": "¥000万円"},
+    {"name": "補助金名2", "cond": "適用条件", "amount": "¥000万円"},
+    {"name": "住宅ローン控除", "cond": "条件概要", "amount": "最大¥000万円"}
+  ],
+  "subsidyNote": "補助金についての補足説明（1〜2文）",
+  "timeline": [
+    {"period": "1〜2ヶ月", "event": "イベント内容"},
+    {"period": "3〜4ヶ月", "event": "イベント内容"},
+    {"period": "5〜7ヶ月", "event": "イベント内容"},
+    {"period": "8〜10ヶ月", "event": "イベント内容"},
+    {"period": "11〜12ヶ月", "event": "イベント内容"}
+  ],
+  "message": "担当者からの締めくくりメッセージ（2〜3文、温かく誠実なトーン）"
+}
+
+金額は予算${Number(f.budget).toLocaleString()}万円に現実的に合わせてください。補助金はZEH希望が「${f.zeh}」であることを考慮してください。`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content?.map(i=>i.text||'').join('');
+    const clean=raw.replace(/```json|```/g,'').trim();
+    state.result=JSON.parse(clean);
+    // final
+    document.getElementById('pctNum').textContent=100;
+    document.getElementById(steps[steps.length-1])?.classList.replace('active','done');
+    setTimeout(()=>{ state.step=5; render(); window.scrollTo({top:0,behavior:'smooth'}); },600);
+  }catch(e){
+    state.error='提案書の生成中にエラーが発生しました。インターネット接続をご確認の上、再度お試しください。\n\n技術情報: '+e.message;
+    state.step=5; render();
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

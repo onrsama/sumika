@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — 補助金ナビゲーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--bg3:#E6DFD8;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --amber:#A06020;--amberbg:rgba(160,96,32,.07);--amberbdr:rgba(160,96,32,.22);
+  --green:#2E7A5C;--greenbg:rgba(46,122,92,.08);--greenbdr:rgba(46,122,92,.25);
+  --red:#A03030;--redbg:rgba(160,48,48,.07);--redbdr:rgba(160,48,48,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;
+  --r:4px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+input,select,textarea{font-family:var(--jp)}
+
+/* SHELL */
+.shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+/* HEADER */
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}.logo-main b{color:var(--teal);font-weight:600}.logo-by{font-size:9.5px;font-weight:400;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans);opacity:.7;margin-top:1px}
+.logo b{color:var(--teal);font-weight:600}
+.header-mid{display:flex;align-items:center;gap:6px}
+.bc-sep{color:var(--ink4);font-size:12px}
+.bc-cur{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.header-back{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;transition:color .2s}
+.header-back:hover{color:var(--ink)}
+.header-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 57px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--white);border-right:1px solid var(--bdr);padding:32px 20px;display:flex;flex-direction:column;position:sticky;top:57px;height:calc(100vh - 57px);overflow:hidden}
+.sb-label{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink4);margin-bottom:14px;padding-left:4px}
+.step-nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.step-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);transition:all .2s}
+.step-item.clickable{cursor:pointer}
+.step-item.clickable:hover{background:var(--bg)}
+.step-item.active{background:var(--tdim);border:1px solid var(--tbdr)}
+.step-item.locked{opacity:.3;pointer-events:none}
+.step-dot{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink4);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:var(--ink3);flex-shrink:0;transition:all .2s}
+.step-item.active .step-dot{border-color:var(--teal);background:var(--teal);color:#fff}
+.step-item.done .step-dot{border-color:var(--green);background:var(--greenbg);color:var(--green);font-size:12px}
+.step-lbl{font-size:12px;font-weight:500;color:var(--ink3);line-height:1.3;transition:color .2s}
+.step-sub{font-size:10px;color:var(--ink4);font-family:var(--jp)}
+.step-item.active .step-lbl{color:var(--ink)}
+.step-item.done .step-lbl{color:var(--ink2)}
+.step-conn{width:1px;height:14px;background:var(--bdr);margin-left:22px}
+.sb-info{margin-top:auto;background:var(--tdim);border:1px solid var(--tbdr);border-radius:var(--r);padding:14px 16px}
+.sb-info-title{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.sb-info-body{font-size:11px;color:var(--ink2);font-family:var(--jp);line-height:1.75}
+
+/* CONTENT */
+.content{padding:40px 52px;max-width:860px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel{animation:fadeUp .3s ease}
+
+/* PAGE HEADER */
+.eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--teal)}
+.page-title{font-family:var(--serif);font-size:34px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.page-title em{font-style:italic;color:var(--teal)}
+.page-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;max-width:560px;margin-bottom:32px}
+
+/* PROGRESS */
+.prog-wrap{margin-bottom:32px}
+.prog-track{height:2px;background:var(--bg3);border-radius:1px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teall));border-radius:1px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.prog-labels{display:flex;justify-content:space-between;margin-top:7px}
+.prog-labels span{font-size:10px;color:var(--ink4);letter-spacing:.05em}
+.prog-labels span.act{color:var(--teal);font-weight:500}
+
+/* FORM */
+.fs{margin-bottom:28px}
+.sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.sh svg{width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.fg{display:grid;gap:14px;margin-bottom:14px}
+.fg.c2{grid-template-columns:1fr 1fr}
+.fg.c3{grid-template-columns:1fr 1fr 1fr}
+.fg.c1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:10.5px;font-weight:500;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.req{color:var(--teal);font-size:11px}
+.field input,.field select{background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--r);padding:10px 13px;color:var(--ink);font-size:13px;outline:none;transition:border-color .2s,background .2s;width:100%}
+.field input:focus,.field select:focus{border-color:var(--teal);background:var(--white)}
+.field input::placeholder{color:var(--ink4)}
+.field select option{background:var(--white)}
+.field-hint{font-size:10.5px;color:var(--ink3);font-family:var(--jp)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.chip{padding:6px 14px;border:1px solid var(--bdr2);border-radius:20px;font-size:12px;color:var(--ink2);cursor:pointer;transition:all .18s;background:transparent;font-family:var(--jp)}
+.chip.sel{border-color:var(--teal);background:var(--tdim);color:var(--ink)}
+.chip:hover:not(.sel){background:var(--bg2);color:var(--ink)}
+
+/* AMOUNT SLIDER */
+.sl-field{display:flex;flex-direction:column;gap:5px}
+.sl-field label{font-size:10.5px;font-weight:500;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase}
+.sl-val{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--teal);line-height:1;margin:4px 0 6px}
+.sl-val small{font-family:var(--sans);font-size:11px;color:var(--ink3)}
+input[type=range]{width:100%;appearance:none;height:2px;background:var(--bg3);border-radius:1px;border:none;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--teal);border:2px solid var(--white);cursor:pointer;box-shadow:0 1px 4px rgba(31,122,114,.3)}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:32px;padding-top:22px;border-top:1px solid var(--bdr)}
+.btn-primary{background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:none;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--teal)}
+.btn-ghost{background:transparent;color:var(--ink2);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--bdr2);border-radius:var(--r);transition:all .2s}
+.btn-ghost:hover{border-color:var(--bdr2);color:var(--ink);background:var(--bg2)}
+
+/* GENERATING */
+.gen-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:0;padding:40px}
+.gen-ring{width:100px;height:100px;border-radius:50%;border:1px solid var(--bdr2);position:relative;margin-bottom:32px;display:flex;align-items:center;justify-content:center}
+.gen-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--teal)}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:28px}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px}
+.gs{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;transition:all .25s}
+.gs.act{border-color:var(--tbdr);color:var(--ink);background:var(--tdim)}
+.gs.done{border-color:var(--greenbdr);color:var(--ink3)}
+.gsdot{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs.act .gsdot{background:var(--teal);animation:pulse 1s ease-in-out infinite}
+.gs.done .gsdot{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:44px;font-weight:300;color:var(--teal);margin-top:20px;line-height:1}
+.gen-pct small{font-family:var(--sans);font-size:13px;color:var(--ink3)}
+
+/* RESULT */
+.result-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.r-badge{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--green);border:1px solid var(--greenbdr);background:var(--greenbg);border-radius:20px;padding:4px 14px;letter-spacing:.08em;text-transform:uppercase}
+.r-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+.r-actions{display:flex;gap:8px}
+.btn-sm{padding:7px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r);transition:all .2s}
+.btn-sm.outline{background:transparent;border:1px solid var(--bdr2);color:var(--ink2)}
+.btn-sm.outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-sm.solid{background:var(--ink);border:none;color:var(--bg);font-weight:500}
+.btn-sm.solid:hover{background:var(--teal)}
+
+/* TOTAL SAVINGS HERO */
+.savings-hero{background:var(--ink);border-radius:8px;padding:32px 40px;margin-bottom:20px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.sh-bar{height:4px;background:linear-gradient(90deg,var(--teal),var(--teall));border-radius:2px;margin-bottom:24px;border-radius:8px 8px 0 0}
+.sh-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px;font-family:var(--sans)}
+.sh-name{font-family:var(--jp);font-size:14px;color:rgba(255,255,255,.7);margin-bottom:4px}
+.sh-total{font-family:var(--serif);font-size:56px;font-weight:300;color:var(--white);line-height:1}
+.sh-total sub{font-size:18px;color:rgba(255,255,255,.5);font-family:var(--sans)}
+.sh-note{font-size:11px;color:rgba(255,255,255,.35);font-family:var(--jp);margin-top:8px}
+.sh-right{text-align:right}
+.sh-count{font-family:var(--serif);font-size:40px;font-weight:300;color:var(--teal);line-height:1}
+.sh-count-lbl{font-size:11px;color:rgba(255,255,255,.4);font-family:var(--jp);margin-top:4px}
+.sh-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sh-pill{font-size:11px;font-family:var(--jp);color:rgba(255,255,255,.6);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 13px}
+
+/* SUBSIDY SECTION HEADER */
+.sec-head{display:flex;align-items:center;gap:11px;margin:28px 0 16px}
+.sec-num{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.sec-title{font-size:11.5px;font-weight:600;color:var(--ink);letter-spacing:.14em;text-transform:uppercase}
+.sec-note{font-size:11px;color:var(--ink3);font-family:var(--jp);margin-left:auto}
+
+/* SUBSIDY CARDS */
+.sub-cards{display:flex;flex-direction:column;gap:12px}
+.sub-card{background:var(--white);border:1px solid var(--bdr);border-radius:6px;overflow:hidden;transition:all .25s}
+.sub-card:hover{border-color:var(--tbdr);box-shadow:0 4px 20px rgba(28,36,34,.06);transform:translateY(-1px)}
+.sub-card-top{padding:20px 24px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.sub-category{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sub-cat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sub-name{font-size:15px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:5px;line-height:1.4}
+.sub-overview{font-size:12.5px;color:var(--ink2);font-family:var(--jp);line-height:1.8}
+.sub-amount-wrap{text-align:right;flex-shrink:0}
+.sub-amount{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--teal);line-height:1;white-space:nowrap}
+.sub-amount-lbl{font-size:10px;color:var(--ink3);font-family:var(--jp);margin-top:3px}
+.sub-priority{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-top:8px}
+.p-high{background:var(--greenbg);color:var(--green);border:1px solid var(--greenbdr)}
+.p-mid{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberbdr)}
+.p-low{background:var(--bg2);color:var(--ink3);border:1px solid var(--bdr2)}
+.sub-card-body{border-top:1px solid var(--bdr);padding:16px 24px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sub-detail-block .sub-detail-lbl{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:7px;font-family:var(--sans)}
+.sub-cond-text{font-size:12px;font-family:var(--jp);color:var(--ink2);line-height:1.8}
+.sub-deadline{font-size:13px;font-family:var(--jp);color:var(--ink);font-weight:500}
+.sub-deadline.urgent{color:var(--red)}
+.doc-list{display:flex;flex-direction:column;gap:5px}
+.doc-item{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;font-family:var(--jp);color:var(--ink2);line-height:1.6}
+.doc-check{width:14px;height:14px;border-radius:2px;border:1.5px solid var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.doc-check::after{content:'';width:6px;height:4px;border-left:1.5px solid var(--teal);border-bottom:1.5px solid var(--teal);transform:rotate(-45deg) translate(1px,-1px)}
+
+/* ROADMAP */
+.roadmap{background:var(--white);border:1px solid var(--bdr);border-radius:6px;overflow:hidden;margin-top:4px}
+.roadmap-inner{padding:24px}
+.rm-steps{display:flex;flex-direction:column;gap:0}
+.rm-row{display:grid;grid-template-columns:100px 24px 1fr;gap:14px;align-items:start;padding:12px 0;border-bottom:1px solid var(--bdr)}
+.rm-row:last-child{border-bottom:none}
+.rm-timing{font-size:11px;color:var(--teal);font-weight:600;font-family:var(--sans);letter-spacing:.04em;padding-top:2px}
+.rm-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.rm-dot{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.rm-line{width:1.5px;flex:1;background:var(--bdr);margin:4px auto;min-height:20px}
+.rm-row:last-child .rm-line{display:none}
+.rm-content-title{font-size:13px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:4px}
+.rm-content-body{font-size:12px;color:var(--ink2);font-family:var(--jp);line-height:1.8}
+.rm-subs{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.rm-sub-tag{font-size:10.5px;font-family:var(--jp);color:var(--teal);background:var(--tdim);border:1px solid var(--tbdr);border-radius:20px;padding:2px 10px}
+
+/* ADVICE BOX */
+.advice-box{background:var(--amberbg);border:1px solid var(--amberbdr);border-radius:6px;padding:20px 24px;margin-top:4px}
+.advice-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;font-family:var(--sans)}
+.advice-text{font-size:13px;font-family:var(--jp);color:var(--ink2);line-height:1.95}
+
+/* ERROR */
+.err-box{background:rgba(160,48,48,.06);border:1px solid rgba(160,48,48,.2);border-radius:var(--r);padding:16px 20px;font-size:13px;font-family:var(--jp);color:var(--red);line-height:1.75}
+
+/* FOOTER */
+footer{border-top:1px solid var(--bdr);padding:12px 40px;display:flex;justify-content:space-between;align-items:center;background:var(--white)}
+footer span{font-size:10px;color:var(--ink3);font-family:var(--jp)}
+footer .ver{font-family:var(--sans);letter-spacing:.08em}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}.sidebar{display:none}
+  .content{padding:24px 20px}
+  .fg.c2,.fg.c3{grid-template-columns:1fr}
+  .savings-hero{grid-template-columns:1fr}.sh-right{text-align:left}
+  .sub-card-body{grid-template-columns:1fr}
+  .roadmap-inner{padding:16px}
+  .rm-row{grid-template-columns:80px 20px 1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="header-mid">
+    <span class="bc-sep">Finance</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-cur">補助金ナビゲーター</span>
+  </div>
+  <button class="header-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+    サービス一覧
+  </button>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-label">ステップ</div>
+    <div class="step-nav" id="stepNav"></div>
+    <div class="sb-info">
+      <div class="sb-info-title">補助金 DB</div>
+      <div class="sb-info-body">国・地方自治体の最新補助金情報をもとに、お客様に最適な制度をAIが自動照合します。</div>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<footer>
+  <span>© 2025 SUMIKA Inc. — 住宅業界のDXを、共に。</span>
+  <span class="ver">v1.0 · Prototype</span>
+</footer>
+</div>
+
+<script>
+const ANTHROPIC_KEY = '';  // Set via server proxy /api/ai
+
+/* ── STATE ── */
+const S = {
+  step: 1,
+  form: {
+    clientName:'山田 太郎', clientAge:'35', familyComp:'ご夫婦＋子2人',
+    income:'600', prefecture:'東京都',
+    houseType:'新築注文住宅', housePrice:'3500',
+    zeh:'ZEH', longTerm:'希望する', lowCarbon:'わからない',
+    firstBuy:'はい', constructionYear:'2025',
+    notes:'省エネ・子育て支援に関連する補助金を優先的に知りたい'
+  },
+  result: null, error: null
+};
+
+const STEPS = [
+  {id:1, label:'お客様情報', sub:'Customer Profile'},
+  {id:2, label:'住宅・取得情報', sub:'Property Details'},
+  {id:3, label:'AI照合中', sub:'Analyzing…'},
+  {id:4, label:'補助金レポート', sub:'Results'},
+];
+
+const CAT_COLORS = {
+  '国家補助金':'#1F7A72','省エネ・ZEH':'#2E6E8E','税制優遇':'#7A5C2E',
+  'ローン優遇':'#5C7A2E','地方自治体':'#7A2E5C','子育て支援':'#2E7A5C'
+};
+
+/* ── SIDEBAR ── */
+function renderSidebar(){
+  document.getElementById('stepNav').innerHTML = STEPS.map((s,i)=>{
+    const st = s.id < S.step ? 'done clickable' : s.id === S.step ? 'active' : 'locked';
+    const icon = s.id < S.step ? '✓' : s.id;
+    const conn = i < STEPS.length-1 ? '<div class="step-conn"></div>' : '';
+    return `<div class="step-item ${st}" onclick="jumpStep(${s.id})">
+      <div class="step-dot">${icon}</div>
+      <div><div class="step-lbl">${s.label}</div><div class="step-sub">${s.sub}</div></div>
+    </div>${conn}`;
+  }).join('');
+}
+function jumpStep(id){ if(id < S.step){ S.step=id; render(); } }
+
+/* ── PROGRESS ── */
+function prog(n){
+  const pct = Math.round((n/2)*100);
+  const labs = ['お客様情報','住宅情報'];
+  return `<div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-labels">${labs.map((l,i)=>`<span class="${i+1<=n?'act':''}">${l}</span>`).join('')}</div>
+  </div>`;
+}
+
+/* ── SVG ICON HELPER ── */
+function ico(path){
+  return `<svg viewBox="0 0 24 24">${path}</svg>`;
+}
+
+/* ── STEP 1 ── */
+function step1(){
+  const f=S.form;
+  const prefs=['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+  const fams=['ご夫婦のみ','ご夫婦＋子1人','ご夫婦＋子2人','ご夫婦＋子3人以上','単身','親との同居','3世代同居'];
+  return `<div class="panel">
+    <div class="eyebrow">Step 1 of 2</div>
+    <h1 class="page-title">お客様<em>情報</em></h1>
+    <p class="page-sub">補助金の適用可否はお客様の属性と大きく関係します。できるだけ正確にご入力ください。</p>
+    ${prog(1)}
+    <div class="fs">
+      <div class="sh">${ico('<path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>')} 基本情報</div>
+      <div class="fg c2">
+        <div class="field"><label>お客様名 <span class="req">*</span></label><input id="clientName" value="${f.clientName}" placeholder="山田 太郎"></div>
+        <div class="field"><label>ご年齢</label><input id="clientAge" type="number" value="${f.clientAge}" placeholder="35" min="18" max="80"></div>
+      </div>
+      <div class="fg c2">
+        <div class="field"><label>家族構成 <span class="req">*</span></label><select id="familyComp">${fams.map(x=>`<option${f.familyComp===x?' selected':''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label>お住まいの都道府県 <span class="req">*</span></label><select id="prefecture">${prefs.map(x=>`<option${f.prefecture===x?' selected':''}>${x}</option>`).join('')}</select></div>
+      </div>
+    </div>
+    <div class="fs">
+      <div class="sh">${ico('<path d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/>')} 収入・初回取得</div>
+      <div class="fg c2">
+        <div class="field">
+          <label>世帯年収（万円）</label>
+          <div class="sl-val" id="incomeV">${Number(f.income).toLocaleString()}<small> 万円</small></div>
+          <input type="range" id="income" min="200" max="2000" step="50" value="${f.income}" oninput="slv('income','incomeV','万円')">
+          <span class="field-hint">住宅ローン控除・すまい給付金の算出に使用</span>
+        </div>
+        <div class="field"><label>初めての住宅取得ですか？</label>
+          <div class="chips" id="firstBuy">
+            ${['はい','いいえ'].map(x=>`<button class="chip${f.firstBuy===x?' sel':''}" data-g="firstBuy" data-v="${x}">${x}</button>`).join('')}
+          </div>
+          <span class="field-hint">初回取得で上乗せ補助金あり</span>
+        </div>
+      </div>
+    </div>
+    <div class="fs">
+      <div class="sh">${ico('<path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>')} その他備考</div>
+      <div class="fg c1">
+        <div class="field"><label>特に知りたい補助金・ご要望</label>
+          <input id="notes" value="${f.notes}" placeholder="例：子育て支援、省エネ、リフォーム補助など">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="next(1)">次へ：住宅情報を入力 →</button>
+    </div>
+  </div>`;
+}
+
+/* ── STEP 2 ── */
+function step2(){
+  const f=S.form;
+  const htypes=['新築注文住宅','建売住宅（新築）','新築マンション','中古住宅購入','リフォーム・改修'];
+  const zehs=['ZEH（ネット・ゼロ・エネルギー・ハウス）','Nearly ZEH','ZEH Oriented','省エネ基準適合（一般）','不明・未定'];
+  const yrs=['2025','2026','2027'];
+  return `<div class="panel">
+    <div class="eyebrow">Step 2 of 2</div>
+    <h1 class="page-title">住宅・取得<em>情報</em></h1>
+    <p class="page-sub">住宅の種類・性能・価格が補助金の種類と金額に直接影響します。</p>
+    ${prog(2)}
+    <div class="fs">
+      <div class="sh">${ico('<path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>')} 住宅の種類と価格</div>
+      <div class="fg c2">
+        <div class="field"><label>住宅取得の種類 <span class="req">*</span></label><select id="houseType">${htypes.map(x=>`<option${f.houseType===x?' selected':''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label>取得予定年</label><select id="constructionYear">${yrs.map(x=>`<option${f.constructionYear===x?' selected':''}>${x}</option>`).join('')}</select></div>
+      </div>
+      <div class="fg c1" style="margin-bottom:0">
+        <div class="sl-field">
+          <label>住宅取得価格（万円）</label>
+          <div class="sl-val" id="housePriceV">${Number(f.housePrice).toLocaleString()}<small> 万円</small></div>
+          <input type="range" id="housePrice" min="500" max="10000" step="100" value="${f.housePrice}" oninput="slv('housePrice','housePriceV','万円')">
+          <span class="field-hint">土地代を除いた建物本体価格</span>
+        </div>
+      </div>
+    </div>
+    <div class="fs">
+      <div class="sh">${ico('<path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>')} 省エネ・住宅性能</div>
+      <div class="fg c1" style="margin-bottom:12px">
+        <div class="field"><label>ZEH・省エネ水準</label>
+          <select id="zeh">${zehs.map(x=>`<option${f.zeh===x?' selected':''}>${x}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="fg c2">
+        <div class="field"><label>長期優良住宅認定</label>
+          <div class="chips" id="longTerm">
+            ${['希望する','検討中','不要'].map(x=>`<button class="chip${f.longTerm===x?' sel':''}" data-g="longTerm" data-v="${x}">${x}</button>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>低炭素住宅認定</label>
+          <div class="chips" id="lowCarbon">
+            ${['希望する','検討中','わからない'].map(x=>`<button class="chip${f.lowCarbon===x?' sel':''}" data-g="lowCarbon" data-v="${x}">${x}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">✦ 補助金を照合する</button>
+      <button class="btn-ghost" onclick="prev()">← 戻る</button>
+    </div>
+  </div>`;
+}
+
+/* ── GENERATING ── */
+function genScreen(){
+  return `<div class="gen-wrap panel">
+    <div class="gen-ring"><div class="gen-inner">¥</div></div>
+    <h2 class="gen-title">補助金を照合中</h2>
+    <p class="gen-sub">お客様の情報と住宅仕様をもとに、適用可能な補助金・優遇制度を全国データベースから照合しています。</p>
+    <div class="gen-steps" id="genSteps">
+      <div class="gs" id="gs1"><span class="gsdot"></span>お客様プロフィールを確認中...</div>
+      <div class="gs" id="gs2"><span class="gsdot"></span>国家補助金データベースを照合中...</div>
+      <div class="gs" id="gs3"><span class="gsdot"></span>省エネ・ZEH補助金を計算中...</div>
+      <div class="gs" id="gs4"><span class="gsdot"></span>${S.form.prefecture}の地方補助金を検索中...</div>
+      <div class="gs" id="gs5"><span class="gsdot"></span>税制優遇・ローン控除を算出中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctN">0</span><small>%</small></div>
+  </div>`;
+}
+
+/* ── RESULT ── */
+function resultScreen(){
+  if(S.error) return `<div class="panel">
+    <div class="eyebrow">エラー</div>
+    <h1 class="page-title">照合に<em>失敗</em>しました</h1>
+    <div class="err-box" style="margin-top:24px">${S.error}</div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">再試行する</button>
+      <button class="btn-ghost" onclick="goBack()">← フォームに戻る</button>
+    </div>
+  </div>`;
+  const r=S.result; if(!r) return '';
+  const d=new Date(); const dateStr=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  const allPills = (r.subsidies||[]).map(s=>s.name).slice(0,4);
+
+  return `<div class="panel">
+    <div class="result-topbar">
+      <div>
+        <div class="eyebrow">照合完了</div>
+        <h1 class="page-title" style="font-size:23px">${S.form.clientName}様<em>補助金レポート</em></h1>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+        <span class="r-badge">AI照合完了 · ${dateStr}</span>
+        <div class="r-actions">
+          <button class="btn-sm outline" onclick="generate()">↻ 再照合</button>
+          <button class="btn-sm outline" onclick="window.print()">🖨 印刷</button>
+          <button class="btn-sm solid" onclick="goBack()">＋ 新規照合</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVINGS HERO -->
+    <div class="savings-hero">
+      <div>
+        <div class="sh-label">補助金・優遇制度 合計見込み額</div>
+        <div class="sh-name">${S.form.clientName}様 ／ ${S.form.houseType} ／ ${S.form.prefecture}</div>
+        <div class="sh-total">${r.totalSavings||'—'}<sub>万円相当</sub></div>
+        <div class="sh-note">※ 実際の支給額は申請状況・予算枠・審査結果により異なります</div>
+        <div class="sh-pills">${allPills.map(p=>`<span class="sh-pill">✓ ${p}</span>`).join('')}</div>
+      </div>
+      <div class="sh-right">
+        <div class="sh-count">${(r.subsidies||[]).length}</div>
+        <div class="sh-count-lbl">適用可能な制度</div>
+      </div>
+    </div>
+
+    <!-- SUBSIDY LIST -->
+    <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">適用可能な補助金・優遇制度</div><div class="sec-note">優先度順</div></div>
+    <div class="sub-cards">
+    ${(r.subsidies||[]).map((s,i)=>{
+      const catColor = CAT_COLORS[s.category]||'#1F7A72';
+      const pClass = s.priority==='高'?'p-high':s.priority==='中'?'p-mid':'p-low';
+      const docsHtml = (s.documents||[]).map(d=>`<div class="doc-item"><div class="doc-check"></div><span>${d}</span></div>`).join('');
+      return `<div class="sub-card">
+        <div class="sub-card-top">
+          <div>
+            <div class="sub-category" style="color:${catColor}">
+              <span class="sub-cat-dot" style="background:${catColor}"></span>${s.category||'補助金'}
+            </div>
+            <div class="sub-name">${s.name}</div>
+            <div class="sub-overview">${s.overview}</div>
+            <span class="sub-priority ${pClass}">優先度：${s.priority||'中'}</span>
+          </div>
+          <div class="sub-amount-wrap">
+            <div class="sub-amount">${s.amount}</div>
+            <div class="sub-amount-lbl">補助額（目安）</div>
+          </div>
+        </div>
+        <div class="sub-card-body">
+          <div class="sub-detail-block">
+            <div class="sub-detail-lbl">適用条件</div>
+            <div class="sub-cond-text">${s.conditions||'—'}</div>
+          </div>
+          <div class="sub-detail-block">
+            <div class="sub-detail-lbl">申請期限・タイミング</div>
+            <div class="sub-deadline${s.urgent?' urgent':''}">${s.deadline||'—'}</div>
+            <div class="sub-cond-text" style="margin-top:6px">${s.timing||''}</div>
+          </div>
+          <div class="sub-detail-block">
+            <div class="sub-detail-lbl">必要書類チェックリスト</div>
+            <div class="doc-list">${docsHtml}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>
+
+    <!-- ROADMAP -->
+    <div class="sec-head"><div class="sec-num">02</div><div class="sec-title">申請ロードマップ</div><div class="sec-note">推奨手順</div></div>
+    <div class="roadmap">
+      <div class="roadmap-inner">
+        <div class="rm-steps">
+          ${(r.roadmap||[]).map((rm,i)=>`<div class="rm-row">
+            <div class="rm-timing">${rm.timing}</div>
+            <div class="rm-dot-wrap"><div class="rm-dot">${i+1}</div><div class="rm-line"></div></div>
+            <div>
+              <div class="rm-content-title">${rm.title}</div>
+              <div class="rm-content-body">${rm.body}</div>
+              ${(rm.subs||[]).length?`<div class="rm-subs">${rm.subs.map(x=>`<span class="rm-sub-tag">${x}</span>`).join('')}</div>`:''}
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVICE -->
+    <div class="sec-head"><div class="sec-num">03</div><div class="sec-title">担当者へのアドバイス</div></div>
+    <div class="advice-box">
+      <div class="advice-title">営業担当者向けメモ</div>
+      <div class="advice-text">${r.advice||''}</div>
+    </div>
+
+  </div>`;
+}
+
+/* ── RENDER ── */
+function render(){
+  renderSidebar();
+  const c=document.getElementById('content');
+  if(S.step===1) c.innerHTML=step1();
+  else if(S.step===2) c.innerHTML=step2();
+  else if(S.step===3) c.innerHTML=genScreen();
+  else if(S.step===4) c.innerHTML=resultScreen();
+  attachListeners();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── LISTENERS ── */
+function attachListeners(){
+  ['clientName','clientAge','notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',e=>S.form[id]=e.target.value);
+  });
+  ['familyComp','prefecture','houseType','zeh','constructionYear'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('change',e=>S.form[id]=e.target.value);
+  });
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const g=c.dataset.g,v=c.dataset.v;
+      S.form[g]=v;
+      document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');
+    });
+  });
+}
+
+/* ── SLIDERS ── */
+function slv(id,vid,unit){
+  const v=document.getElementById(id).value; S.form[id]=v;
+  document.getElementById(vid).innerHTML=Number(v).toLocaleString()+`<small> ${unit}</small>`;
+}
+
+/* ── NAV ── */
+function next(from){
+  if(from===1&&!S.form.clientName.trim()){alert('お客様名を入力してください');return;}
+  S.step=from+1; render();
+}
+function prev(){ S.step--; render(); }
+function goBack(){ S.step=1; S.result=null; S.error=null; render(); }
+
+/* ── GENERATE ── */
+async function generate(){
+  S.step=3; S.result=null; S.error=null; render();
+  const ids=['gs1','gs2','gs3','gs4','gs5'], pcts=[15,32,54,75,92];
+  let idx=0;
+  function tick(){
+    if(idx>0){const p=document.getElementById(ids[idx-1]);if(p){p.classList.remove('act');p.classList.add('done');}}
+    if(idx<ids.length){
+      const el=document.getElementById(ids[idx]);if(el)el.classList.add('act');
+      const pn=document.getElementById('pctN');if(pn)pn.textContent=pcts[idx];
+      idx++;setTimeout(tick,950);
+    }
+  }
+  tick();
+  const f=S.form;
+  const prompt=`あなたは日本の住宅補助金の専門家です。以下の顧客情報をもとに、2025年度に申請できる補助金・優遇制度をJSONのみで返してください。バッククォート・説明文は不要。
+
+顧客: ${f.clientName}様（${f.clientAge}歳）/ 家族: ${f.familyComp} / 都道府県: ${f.prefecture}
+年収: ${f.income}万円 / 初回取得: ${f.firstBuy} / 住宅種類: ${f.houseType}
+価格: ${f.housePrice}万円 / ZEH: ${f.zeh} / 長期優良: ${f.longTerm} / 低炭素: ${f.lowCarbon}
+取得年: ${f.constructionYear}年 / 備考: ${f.notes}
+
+返すJSON（補助金5〜6件、ロードマップ5ステップ）:
+{
+  "totalSavings": "数字のみ（例:483）",
+  "subsidies": [
+    {
+      "name": "制度名",
+      "category": "国家補助金|省エネ・ZEH|税制優遇|ローン優遇|地方自治体|子育て支援",
+      "overview": "概要1文",
+      "amount": "¥XXX万円",
+      "conditions": "適用条件2文",
+      "deadline": "期限",
+      "timing": "申請タイミング1文",
+      "urgent": false,
+      "priority": "高|中|低",
+      "documents": ["書類1","書類2","書類3"]
+    }
+  ],
+  "roadmap": [
+    {"timing":"契約前","title":"タイトル","body":"説明2文","subs":["補助金名"]}
+  ],
+  "advice": "営業担当者へのアドバイス3文"
+}
+
+必ず${f.prefecture}の地方補助金を1件含めること。合計額は実際の数字で。`;
+
+  try{
+    const res=await fetch('/api/ai',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const raw=(data.content||[]).map(i=>i.text||'').join('');
+    // Extract JSON — robust: find outermost { }
+    const start=raw.indexOf('{');
+    let jsonStr=start>=0?raw.slice(start):raw;
+    jsonStr=jsonStr.replace(/```json|```/g,'').trim();
+    // If truncated, try to close unclosed structures
+    let parsed;
+    try{
+      parsed=JSON.parse(jsonStr);
+    }catch(e1){
+      // attempt repair: close open arrays/objects
+      let depth=0,inStr=false,escaped=false,repaired=jsonStr;
+      const stack=[];
+      for(let i=0;i<jsonStr.length;i++){
+        const ch=jsonStr[i];
+        if(escaped){escaped=false;continue;}
+        if(ch==='\\'){escaped=true;continue;}
+        if(ch==='"'){inStr=!inStr;continue;}
+        if(inStr) continue;
+        if(ch==='{')stack.push('}');
+        else if(ch==='[')stack.push(']');
+        else if(ch==='}'||ch===']')stack.pop();
+      }
+      // close any trailing comma then close unclosed
+      repaired=repaired.replace(/,\s*$/,'');
+      while(stack.length) repaired+=stack.pop();
+      try{parsed=JSON.parse(repaired);}
+      catch(e2){throw new Error('JSONパースエラー: '+e1.message);}
+    }
+    S.result=parsed;
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=100;
+    const last=document.getElementById(ids[ids.length-1]);if(last){last.classList.remove('act');last.classList.add('done');}
+    setTimeout(()=>{S.step=4;render();},700);
+  }catch(e){
+    S.error='補助金照合中にエラーが発生しました。<br><br><small style="opacity:.6">'+e.message+'</small>';
+    S.step=4;render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>

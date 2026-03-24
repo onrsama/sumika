@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — SNSコンテンツ AI スタジオ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--bg3:#E6DFD8;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --ig:#C13584;--igbg:rgba(193,53,132,.07);--igbdr:rgba(193,53,132,.2);
+  --yt:#FF0000;--ytbg:rgba(255,0,0,.07);--ytbdr:rgba(255,0,0,.2);
+  --line:#06C755;--linebg:rgba(6,199,85,.07);--linebdr:rgba(6,199,85,.2);
+  --x:#000000;--xbg:rgba(0,0,0,.05);--xbdr:rgba(0,0,0,.15);
+  --green:#2A7A50;--greenbg:rgba(42,122,80,.08);--greenbdr:rgba(42,122,80,.25);
+  --amber:#956010;--amberbg:rgba(149,96,16,.07);--amberbdr:rgba(149,96,16,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;
+  --r:4px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+input,select,textarea{font-family:var(--jp)}
+
+.shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+/* HEADER */
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}.logo-main b{color:var(--teal);font-weight:600}.logo-by{font-size:9.5px;font-weight:400;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans);opacity:.7;margin-top:1px}
+.logo b{color:var(--teal);font-weight:600}
+.hm{display:flex;align-items:center;gap:6px}
+.hs{color:var(--ink4);font-size:12px}
+.hc{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.hb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;transition:color .2s}
+.hb:hover{color:var(--ink)}
+.hb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 57px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--white);border-right:1px solid var(--bdr);padding:28px 18px;display:flex;flex-direction:column;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto}
+.sb-lbl{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink4);margin-bottom:14px;padding-left:4px}
+.sn{display:flex;flex-direction:column;gap:2px;flex:1}
+.si{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);transition:all .2s}
+.si.click{cursor:pointer}.si.click:hover{background:var(--bg)}
+.si.active{background:var(--tdim);border:1px solid var(--tbdr)}
+.si.locked{opacity:.3;pointer-events:none}
+.sdot{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink4);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:var(--ink3);flex-shrink:0;transition:all .2s}
+.si.active .sdot{border-color:var(--teal);background:var(--teal);color:#fff}
+.si.done .sdot{border-color:var(--green);background:var(--greenbg);color:var(--green)}
+.slbl{font-size:12px;font-weight:500;color:var(--ink3);line-height:1.3;transition:color .2s}
+.ssub{font-size:10px;color:var(--ink4);font-family:var(--jp)}
+.si.active .slbl{color:var(--ink)}.si.done .slbl{color:var(--ink2)}
+.sc{width:1px;height:14px;background:var(--bdr);margin-left:22px}
+.sb-info{background:var(--tdim);border:1px solid var(--tbdr);border-radius:var(--r);padding:14px 16px;margin-top:16px}
+.sbit{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.sbib{font-size:11px;color:var(--ink2);font-family:var(--jp);line-height:1.75}
+
+/* CONTENT */
+.content{padding:36px 48px;max-width:900px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel{animation:fadeUp .3s ease}
+
+/* PAGE HEADER */
+.ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ey::before{content:'';width:16px;height:1px;background:var(--teal)}
+.pt{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.pt em{font-style:italic;color:var(--teal)}
+.ps{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;max-width:580px;margin-bottom:28px}
+
+/* FORM */
+.fs{margin-bottom:24px}
+.sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.sh svg{width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.fg{display:grid;gap:12px;margin-bottom:12px}
+.fg.c2{grid-template-columns:1fr 1fr}.fg.c3{grid-template-columns:1fr 1fr 1fr}.fg.c1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:10.5px;font-weight:500;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.req{color:var(--teal);font-size:11px}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--r);padding:10px 13px;color:var(--ink);font-size:13px;outline:none;transition:border-color .2s,background .2s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);background:var(--white)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.75}
+.field-hint{font-size:10.5px;color:var(--ink3);font-family:var(--jp)}
+
+/* PLATFORM CARDS */
+.platform-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.pf-card{border:1.5px solid var(--bdr);border-radius:6px;padding:16px 14px;cursor:pointer;transition:all .2s;background:var(--white);position:relative;text-align:center}
+.pf-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(28,36,34,.07)}
+.pf-card.sel-ig{border-color:var(--ig);background:var(--igbg)}
+.pf-card.sel-yt{border-color:var(--yt);background:var(--ytbg)}
+.pf-card.sel-line{border-color:var(--line);background:var(--linebg)}
+.pf-card.sel-x{border-color:#333;background:var(--xbg)}
+.pf-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:20px}
+.pf-name{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.pf-sub{font-size:10px;color:var(--ink3);font-family:var(--jp);line-height:1.5}
+.pf-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.pf-card.sel-ig .pf-check,.pf-card.sel-yt .pf-check,.pf-card.sel-line .pf-check,.pf-card.sel-x .pf-check{display:flex}
+.pf-card.sel-ig .pf-check{background:var(--ig)}
+.pf-card.sel-yt .pf-check{background:var(--yt)}
+.pf-card.sel-line .pf-check{background:var(--line)}
+.pf-card.sel-x .pf-check{background:#333}
+
+/* CONTENT TYPE CHIPS */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.type-item{border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:all .18s;background:var(--white);display:flex;align-items:flex-start;gap:10px}
+.type-item.sel{border-color:var(--teal);background:var(--tdim)}
+.type-item:hover:not(.sel){background:var(--bg2)}
+.type-dot{width:8px;height:8px;border-radius:50%;border:2px solid var(--ink4);flex-shrink:0;margin-top:4px;transition:all .2s}
+.type-item.sel .type-dot{background:var(--teal);border-color:var(--teal)}
+.type-name{font-size:12.5px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:2px}
+.type-desc{font-size:11px;color:var(--ink3);font-family:var(--jp);line-height:1.6}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--bdr2);border-radius:6px;padding:32px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--tdim)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{width:44px;height:44px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.uz-icon svg{width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.uz-title{font-size:13.5px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.uz-sub{font-size:12px;color:var(--ink3);font-family:var(--jp);line-height:1.7}
+.uz-limit{font-size:11px;color:var(--ink4);margin-top:6px}
+
+/* PHOTO PREVIEW */
+.preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.pv-item{position:relative;border-radius:var(--r);overflow:hidden;background:var(--bg2);aspect-ratio:1}
+.pv-item img{width:100%;height:100%;object-fit:cover}
+.pv-rm{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(28,36,34,.75);color:#fff;border:none;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.pv-rm:hover{background:var(--red,#903030)}
+.pv-badge{position:absolute;bottom:0;left:0;right:0;font-size:9px;color:#fff;background:rgba(28,36,34,.65);padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* TONE CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.chip{padding:5px 14px;border:1px solid var(--bdr2);border-radius:20px;font-size:12px;color:var(--ink2);cursor:pointer;transition:all .18s;background:transparent;font-family:var(--jp)}
+.chip.sel{border-color:var(--teal);background:var(--tdim);color:var(--ink)}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--bdr)}
+.btn-p{background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:none;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-p:hover{background:var(--teal)}
+.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-g{background:transparent;color:var(--ink2);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--bdr2);border-radius:var(--r);transition:all .2s}
+.btn-g:hover{color:var(--ink);background:var(--bg2)}
+
+/* GENERATING */
+.gen-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;text-align:center;padding:40px}
+.gen-ring{width:100px;height:100px;border-radius:50%;border:1px solid var(--bdr2);position:relative;margin-bottom:28px;display:flex;align-items:center;justify-content:center}
+.gen-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:24px}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:24px}
+.gen-steps{display:flex;flex-direction:column;gap:7px;width:100%;max-width:380px}
+.gs{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;transition:all .25s}
+.gs.act{border-color:var(--tbdr);color:var(--ink);background:var(--tdim)}
+.gs.done{border-color:var(--greenbdr);color:var(--ink3)}
+.gd{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs.act .gd{background:var(--teal);animation:pulse 1s ease-in-out infinite}
+.gs.done .gd{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* RESULT */
+.res-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.rbadge{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--green);border:1px solid var(--greenbdr);background:var(--greenbg);border-radius:20px;padding:4px 14px;letter-spacing:.08em;text-transform:uppercase}
+.rbadge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+.r-acts{display:flex;gap:8px}
+.bsm{padding:7px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r);transition:all .2s}
+.bsm.out{background:transparent;border:1px solid var(--bdr2);color:var(--ink2)}
+.bsm.out:hover{border-color:var(--teal);color:var(--teal)}
+.bsm.sol{background:var(--ink);border:none;color:var(--bg);font-weight:500}
+.bsm.sol:hover{background:var(--teal)}
+
+/* PHOTO STRIP */
+.photo-strip{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
+.photo-strip::-webkit-scrollbar{height:3px}
+.photo-strip::-webkit-scrollbar-thumb{background:var(--ink4);border-radius:2px}
+.ps-thumb{width:64px;height:64px;border-radius:var(--r);overflow:hidden;flex-shrink:0;border:2px solid var(--bdr)}
+.ps-thumb img{width:100%;height:100%;object-fit:cover}
+
+/* CONTENT CARDS */
+.content-cards{display:flex;flex-direction:column;gap:16px}
+.cc{background:var(--white);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;transition:border-color .2s}
+.cc:hover{border-color:var(--tbdr)}
+
+/* CARD HEADER per platform */
+.cc-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr)}
+.cc-head-ig{background:linear-gradient(90deg,rgba(193,53,132,.08),rgba(225,119,49,.05))}
+.cc-head-yt{background:rgba(255,0,0,.05)}
+.cc-head-line{background:rgba(6,199,85,.05)}
+.cc-head-x{background:rgba(0,0,0,.03)}
+.cc-plat{display:flex;align-items:center;gap:10px}
+.cc-plat-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.cc-plat-name{font-size:13px;font-weight:600;color:var(--ink)}
+.cc-plat-type{font-size:11px;color:var(--ink3);font-family:var(--jp);margin-top:1px}
+.cc-copy-all{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:var(--tdim);border:1px solid var(--tbdr);padding:5px 12px;border-radius:var(--r);transition:all .2s}
+.cc-copy-all:hover{background:var(--teal);color:#fff}
+
+/* CONTENT BLOCKS */
+.cc-body{padding:20px}
+.cb{margin-bottom:18px}
+.cb:last-child{margin-bottom:0}
+.cb-label{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;font-family:var(--sans);display:flex;align-items:center;justify-content:space-between}
+.cb-copy{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--sans);padding:0;transition:opacity .2s}
+.cb-copy:hover{opacity:.7}
+.cb-text{font-size:13px;font-family:var(--jp);color:var(--ink2);line-height:1.9;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;white-space:pre-wrap;position:relative}
+.cb-text.caption{min-height:80px}
+.cb-text.script{min-height:120px;font-size:12.5px}
+.cb-tags{display:flex;flex-wrap:wrap;gap:6px}
+.cb-tag{font-size:12px;color:var(--ig);background:var(--igbg);border:1px solid var(--igbdr);border-radius:20px;padding:3px 10px;font-family:var(--sans)}
+.cb-tag.line-tag{color:var(--teal);background:var(--tdim);border-color:var(--tbdr)}
+.cb-tag.x-tag{color:#333;background:var(--xbg);border-color:var(--xbdr)}
+
+/* SCHEDULE CARDS */
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.sch-item{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px}
+.sch-day{font-size:11.5px;font-weight:600;color:var(--teal);margin-bottom:4px;font-family:var(--sans)}
+.sch-time{font-size:13px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:3px}
+.sch-reason{font-size:11px;color:var(--ink3);font-family:var(--jp);line-height:1.7}
+
+/* TIPS BOX */
+.tips-box{background:var(--amberbg);border:1px solid var(--amberbdr);border-radius:6px;padding:18px 22px;margin-top:4px}
+.tips-label{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;font-family:var(--sans)}
+.tips-list{display:flex;flex-direction:column;gap:7px}
+.tip-item{display:flex;gap:9px;font-size:12.5px;font-family:var(--jp);color:var(--ink2);line-height:1.75}
+.tip-num{width:20px;height:20px;border-radius:50%;background:var(--amber);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+
+/* SEC HEAD */
+.sec-head{display:flex;align-items:center;gap:11px;margin:24px 0 14px}
+.sec-num{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.sec-title{font-size:11.5px;font-weight:600;color:var(--ink);letter-spacing:.14em;text-transform:uppercase}
+.sec-note{font-size:11px;color:var(--ink3);font-family:var(--jp);margin-left:auto}
+
+/* ERROR */
+.err-box{background:rgba(144,48,48,.07);border:1px solid rgba(144,48,48,.22);border-radius:var(--r);padding:16px 20px;font-size:13px;font-family:var(--jp);color:#903030;line-height:1.75}
+
+/* FOOTER */
+footer{border-top:1px solid var(--bdr);padding:12px 40px;display:flex;justify-content:space-between;align-items:center;background:var(--white)}
+footer span{font-size:10px;color:var(--ink3);font-family:var(--jp)}
+footer .ver{font-family:var(--sans);letter-spacing:.08em}
+
+/* COPY TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:var(--bg);font-size:12px;font-family:var(--jp);padding:10px 18px;border-radius:20px;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}.sidebar{display:none}.content{padding:20px 16px}
+  .fg.c2,.fg.c3,.platform-grid{grid-template-columns:1fr 1fr}.type-grid{grid-template-columns:1fr}
+  .schedule-grid{grid-template-columns:1fr}.preview-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="hm"><span class="hs">Sales & CX</span><span class="hs">›</span><span class="hc">SNSコンテンツ AI スタジオ</span></div>
+  <button class="hb" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+    サービス一覧
+  </button>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-lbl">ステップ</div>
+    <div class="sn" id="stepNav"></div>
+    <div class="sb-info">
+      <div class="sbit">AI Content Engine</div>
+      <div class="sbib">AI Vision搭載。写真を見てInstagram・YouTube・LINEに最適化されたコンテンツを自動生成します。</div>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<footer>
+  <span>© 2025 SUMIKA Inc. — 住宅業界のDXを、共に。</span>
+  <span class="ver">v1.0 · Prototype</span>
+</footer>
+</div>
+
+<div class="toast" id="toast">✓ コピーしました</div>
+
+<script>
+const ANTHROPIC_KEY = '';  // Set via server proxy /api/ai
+
+/* ── STATE ── */
+const S = {
+  step: 1,
+  form: {
+    companyName:'ナチュラルハウス', companyArea:'東京・埼玉',
+    companyStyle:'自然素材・無垢材の注文住宅',
+    contentType:'竣工完成写真',
+    platforms:['instagram'],
+    tone:'温かみ・家族感', caption_style:'ストーリー形式',
+    cta:'お問い合わせ',
+    notes:'子育て世代の施主様の家。無垢フローリングとアイランドキッチンが特徴的な明るいLDKです。'
+  },
+  photos: [],
+  result: null, error: null
+};
+
+const STEPS = [
+  {id:1,label:'会社・コンテンツ設定', sub:'Brand Setup'},
+  {id:2,label:'写真アップロード',      sub:'Photo Upload'},
+  {id:3,label:'AI生成中',              sub:'Generating…'},
+  {id:4,label:'コンテンツ',            sub:'Content Output'},
+];
+
+const PLATFORM_INFO = {
+  instagram:{name:'Instagram', icon:'📸', sub:'投稿・リール・ストーリー', selClass:'sel-ig'},
+  youtube:  {name:'YouTube',   icon:'▶️', sub:'ショート・概要欄', selClass:'sel-yt'},
+  line:     {name:'LINE',      icon:'💬', sub:'公式アカウント配信', selClass:'sel-line'},
+  x:        {name:'X (Twitter)',icon:'✕', sub:'投稿・スレッド', selClass:'sel-x'},
+};
+
+const CONTENT_TYPES = [
+  {id:'竣工完成写真',     desc:'完成した家の外観・内装を紹介するコンテンツ'},
+  {id:'施工中ドキュメント', desc:'工事の進捗・こだわりポイントを見せる'},
+  {id:'お客様の声',       desc:'施主様インタビューや感想のコンテンツ'},
+  {id:'建材・素材紹介',   desc:'使用している素材・製品のこだわりを伝える'},
+  {id:'Before / After',  desc:'リフォーム前後の比較コンテンツ'},
+  {id:'スタッフ紹介',     desc:'職人・担当者の顔出しコンテンツ'},
+];
+
+/* ── SIDEBAR ── */
+function renderSidebar(){
+  document.getElementById('stepNav').innerHTML = STEPS.map((s,i)=>{
+    const st=s.id<S.step?'done click':s.id===S.step?'active':'locked';
+    const ic=s.id<S.step?'✓':s.id;
+    const conn=i<STEPS.length-1?'<div class="sc"></div>':'';
+    return `<div class="si ${st}" onclick="jumpStep(${s.id})">
+      <div class="sdot">${ic}</div>
+      <div><div class="slbl">${s.label}</div><div class="ssub">${s.sub}</div></div>
+    </div>${conn}`;
+  }).join('');
+}
+function jumpStep(id){ if(id<S.step){S.step=id;render();} }
+
+function svgI(p){return `<svg viewBox="0 0 24 24">${p}</svg>`;}
+
+/* ── STEP 1 ── */
+function step1(){
+  const f=S.form;
+  const tones=['温かみ・家族感','プロフェッショナル','シンプル・ミニマル','こだわり・職人気質','明るく親しみやすい','高級感・上質'];
+  const cstyles=['ストーリー形式','端的・シンプル','問いかけ形式','体験談・感情重視'];
+  const ctas=['お問い合わせ','資料請求','見学予約','LINE相談','公式サイト'];
+
+  return `<div class="panel">
+  <div class="ey">Step 1 of 2</div>
+  <h1 class="pt">会社・コンテンツ<em>設定</em></h1>
+  <p class="ps">御社のブランドと生成するコンテンツの方向性を設定してください。AIがトーンを合わせて生成します。</p>
+
+  <div class="fs">
+    <div class="sh">${svgI('<path d="M2.25 21 12 3l9.75 18H2.25Zm10.5-6v3m0-6v.008"/>')} 会社情報（AIのトーン設定に使用）</div>
+    <div class="fg c2">
+      <div class="field"><label>会社名 <span class="req">*</span></label><input id="companyName" value="${f.companyName}" placeholder="例：ナチュラルハウス"></div>
+      <div class="field"><label>営業エリア</label><input id="companyArea" value="${f.companyArea}" placeholder="例：東京・神奈川"></div>
+    </div>
+    <div class="fg c1">
+      <div class="field"><label>会社の特徴・売り</label><input id="companyStyle" value="${f.companyStyle}" placeholder="例：自然素材・無垢材の注文住宅"><span class="field-hint">AIがこの特徴を踏まえてコンテンツを作成します</span></div>
+    </div>
+  </div>
+
+  <div class="fs">
+    <div class="sh">${svgI('<path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/>')} コンテンツタイプ</div>
+    <div class="type-grid" id="typeGrid">
+      ${CONTENT_TYPES.map(t=>`<div class="type-item${f.contentType===t.id?' sel':''}" onclick="setType('${t.id}')">
+        <div class="type-dot"></div>
+        <div><div class="type-name">${t.id}</div><div class="type-desc">${t.desc}</div></div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="fs">
+    <div class="sh">${svgI('<path d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 1 8.835-2.535m0 0A23.74 23.74 0 0 1 18.795 3c1.456 0 2.587 1.253 2.437 2.698l-.728 7.194m-9.253-5.032A18.03 18.03 0 0 0 9.96 12c0 1.586.205 3.124.59 4.59m7.165-10.222A18.03 18.03 0 0 1 18.96 12c0 1.586-.205 3.124-.59 4.59m0 0a23.847 23.847 0 0 1-8.835 2.535"/>')} 投稿するプラットフォーム（複数選択可）</div>
+    <div class="platform-grid">
+      ${Object.entries(PLATFORM_INFO).map(([k,v])=>`
+      <div class="pf-card${f.platforms.includes(k)?' '+v.selClass:''}" onclick="togglePlatform('${k}')">
+        <div class="pf-check">✓</div>
+        <div class="pf-icon">${v.icon}</div>
+        <div class="pf-name">${v.name}</div>
+        <div class="pf-sub">${v.sub}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="fs">
+    <div class="sh">${svgI('<path d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>')} 投稿トーン・スタイル</div>
+    <div class="fg c2">
+      <div class="field"><label>トーン・雰囲気</label>
+        <div class="chips" id="toneChips">
+          ${tones.map(t=>`<button class="chip${f.tone===t?' sel':''}" data-g="tone" data-v="${t}">${t}</button>`).join('')}
+        </div>
+      </div>
+      <div class="field"><label>キャプションスタイル</label>
+        <div class="chips" id="styleChips">
+          ${cstyles.map(t=>`<button class="chip${f.caption_style===t?' sel':''}" data-g="caption_style" data-v="${t}">${t}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="fg c2">
+      <div class="field"><label>CTA（行動喚起）</label>
+        <div class="chips" id="ctaChips">
+          ${ctas.map(t=>`<button class="chip${f.cta===t?' sel':''}" data-g="cta" data-v="${t}">${t}</button>`).join('')}
+        </div>
+      </div>
+      <div class="field"><label>追加メモ・写真の説明</label>
+        <textarea id="notes" placeholder="例：子育て世代の施主様の家。無垢フローリングとアイランドキッチンが特徴的なLDKです。">${f.notes}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-p" onclick="next(1)">次へ：写真をアップロード →</button>
+  </div>
+</div>`;
+}
+
+/* ── STEP 2 ── */
+function step2(){
+  const cnt=S.photos.length;
+  return `<div class="panel">
+  <div class="ey">Step 2 of 2</div>
+  <h1 class="pt">写真<em>アップロード</em></h1>
+  <p class="ps">投稿に使う写真をアップロードしてください。AIが写真を見てコンテンツを生成します。最大4枚。</p>
+
+  <div class="fs">
+    <div class="sh">${svgI('<path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>')} 写真を選択</div>
+    <div class="upload-zone" id="uz" ondragover="dov(event)" ondragleave="dlv()" ondrop="drf(event)">
+      <input type="file" accept="image/*" multiple id="fi" onchange="hf(this.files)">
+      <div class="uz-icon">${svgI('<path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/>')}</div>
+      <div class="uz-title">写真をドラッグ＆ドロップ、またはクリック</div>
+      <div class="uz-sub">AIが写真の内容を読み取り、コンテンツを最適化します</div>
+      <div class="uz-limit">最大4枚 · JPG / PNG / HEIC · 各10MB以内</div>
+    </div>
+    ${cnt>0?`
+    <div style="font-size:12px;color:var(--teal);font-weight:500;margin-top:10px;font-family:var(--jp)">✓ ${cnt}枚 選択済み</div>
+    <div class="preview-grid" id="pg">
+      ${S.photos.map((p,i)=>`<div class="pv-item">
+        <img src="${p.dataUrl}" alt="${p.name}">
+        <button class="pv-rm" onclick="rp(${i})">✕</button>
+        <div class="pv-badge">${p.name}</div>
+      </div>`).join('')}
+    </div>`:''}
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-p" onclick="generate()" ${cnt===0?'disabled':''}>
+      ✦ コンテンツを生成する（${cnt}枚）
+    </button>
+    <button class="btn-g" onclick="prev()">← 戻る</button>
+  </div>
+</div>`;
+}
+
+/* ── GEN SCREEN ── */
+function genScreen(){
+  return `<div class="gen-wrap panel">
+  <div class="gen-ring"><div class="gen-inner">✍️</div></div>
+  <h2 class="gen-title">コンテンツを生成中</h2>
+  <p class="gen-sub">写真を解析して各プラットフォームに最適化されたキャプション・ハッシュタグ・スクリプトを作成しています。</p>
+  <div class="gen-steps" id="gs-wrap">
+    <div class="gs" id="gs1"><span class="gd"></span>写真の内容を解析中...</div>
+    <div class="gs" id="gs2"><span class="gd"></span>ブランドトーンを設定中...</div>
+    <div class="gs" id="gs3"><span class="gd"></span>キャプションを執筆中...</div>
+    <div class="gs" id="gs4"><span class="gd"></span>ハッシュタグを最適化中...</div>
+    <div class="gs" id="gs5"><span class="gd"></span>投稿スケジュールを提案中...</div>
+  </div>
+</div>`;
+}
+
+/* ── RESULT ── */
+function resultScreen(){
+  if(S.error) return `<div class="panel">
+    <div class="ey">エラー</div>
+    <h1 class="pt">生成に<em>失敗</em>しました</h1>
+    <div class="err-box" style="margin-top:20px">${S.error}</div>
+    <div class="btn-row">
+      <button class="btn-p" onclick="generate()">再試行する</button>
+      <button class="btn-g" onclick="goBack()">← フォームに戻る</button>
+    </div>
+  </div>`;
+  const r=S.result; if(!r) return '';
+  const f=S.form;
+
+  // Photo strip
+  const stripHtml=S.photos.map(p=>`<div class="ps-thumb"><img src="${p.dataUrl}" alt="photo"></div>`).join('');
+
+  // Platform content cards
+  const platCards=(r.platforms||[]).map(pc=>{
+    const info=PLATFORM_INFO[pc.id]||{name:pc.id,icon:'📱',sub:'',selClass:''};
+    const headClass=`cc-head-${pc.id}`;
+    let bodyHtml='';
+
+    if(pc.caption){
+      bodyHtml+=`<div class="cb">
+        <div class="cb-label">キャプション <button class="cb-copy" onclick="copyText(this,'${pc.id}-cap')">コピー ↗</button></div>
+        <div class="cb-text caption" id="${pc.id}-cap">${pc.caption}</div>
+      </div>`;
+    }
+    if(pc.hashtags?.length){
+      const tagClass=pc.id==='instagram'?'':'line-tag';
+      bodyHtml+=`<div class="cb">
+        <div class="cb-label">ハッシュタグ <button class="cb-copy" onclick="copyText(this,'${pc.id}-tags')">コピー ↗</button></div>
+        <div id="${pc.id}-tags" style="display:none">${pc.hashtags.join(' ')}</div>
+        <div class="cb-tags">${pc.hashtags.map(h=>`<span class="cb-tag ${tagClass}">${h}</span>`).join('')}</div>
+      </div>`;
+    }
+    if(pc.script){
+      bodyHtml+=`<div class="cb">
+        <div class="cb-label">${pc.id==='youtube'?'ショート動画スクリプト':'リールスクリプト'} <button class="cb-copy" onclick="copyText(this,'${pc.id}-scr')">コピー ↗</button></div>
+        <div class="cb-text script" id="${pc.id}-scr">${pc.script}</div>
+      </div>`;
+    }
+    if(pc.story){
+      bodyHtml+=`<div class="cb">
+        <div class="cb-label">ストーリー文案 <button class="cb-copy" onclick="copyText(this,'${pc.id}-st')">コピー ↗</button></div>
+        <div class="cb-text" id="${pc.id}-st">${pc.story}</div>
+      </div>`;
+    }
+    if(pc.thread){
+      bodyHtml+=`<div class="cb">
+        <div class="cb-label">スレッド / 連投文案 <button class="cb-copy" onclick="copyText(this,'${pc.id}-th')">コピー ↗</button></div>
+        <div class="cb-text script" id="${pc.id}-th">${pc.thread}</div>
+      </div>`;
+    }
+
+    return `<div class="cc">
+      <div class="cc-head ${headClass}">
+        <div class="cc-plat">
+          <div class="cc-plat-icon">${info.icon}</div>
+          <div><div class="cc-plat-name">${info.name}</div><div class="cc-plat-type">${info.sub}</div></div>
+        </div>
+        <button class="cc-copy-all" onclick="copyAll('${pc.id}')">全てコピー ↗</button>
+      </div>
+      <div class="cc-body">${bodyHtml}</div>
+    </div>`;
+  }).join('');
+
+  // Schedule
+  const schedHtml=(r.schedule||[]).map(s=>`
+    <div class="sch-item">
+      <div class="sch-day">${s.platform} · ${s.day}</div>
+      <div class="sch-time">${s.time}</div>
+      <div class="sch-reason">${s.reason}</div>
+    </div>`).join('');
+
+  // Tips
+  const tipsHtml=(r.tips||[]).map((t,i)=>`
+    <div class="tip-item"><div class="tip-num">${i+1}</div><div>${t}</div></div>`).join('');
+
+  return `<div class="panel">
+  <div class="res-top">
+    <div>
+      <div class="ey">生成完了</div>
+      <h1 class="pt" style="font-size:22px">${f.companyName} · <em>SNSコンテンツ</em></h1>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <span class="rbadge">AI生成完了</span>
+      <div class="r-acts">
+        <button class="bsm out" onclick="generate()">↻ 再生成</button>
+        <button class="bsm sol" onclick="goBack()">＋ 新規作成</button>
+      </div>
+    </div>
+  </div>
+
+  ${stripHtml?`<div class="photo-strip">${stripHtml}</div>`:''}
+
+  <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">プラットフォーム別コンテンツ</div><div class="sec-note">${f.platforms.length}媒体</div></div>
+  <div class="content-cards">${platCards}</div>
+
+  ${schedHtml?`
+  <div class="sec-head"><div class="sec-num">02</div><div class="sec-title">最適投稿スケジュール</div></div>
+  <div class="schedule-grid">${schedHtml}</div>`:''}
+
+  ${tipsHtml?`
+  <div class="sec-head"><div class="sec-num">03</div><div class="sec-title">エンゲージメントを上げるヒント</div></div>
+  <div class="tips-box">
+    <div class="tips-label">AI からのアドバイス</div>
+    <div class="tips-list">${tipsHtml}</div>
+  </div>`:''}
+</div>`;
+}
+
+/* ── RENDER ── */
+function render(){
+  renderSidebar();
+  const c=document.getElementById('content');
+  if(S.step===1) c.innerHTML=step1();
+  else if(S.step===2) c.innerHTML=step2();
+  else if(S.step===3) c.innerHTML=genScreen();
+  else if(S.step===4) c.innerHTML=resultScreen();
+  attachListeners();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function attachListeners(){
+  ['companyName','companyArea','companyStyle','notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',e=>S.form[id]=e.target.value);
+  });
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      S.form[c.dataset.g]=c.dataset.v;
+      document.querySelectorAll(`[data-g="${c.dataset.g}"]`).forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');
+    });
+  });
+}
+
+function setType(t){
+  S.form.contentType=t;
+  document.querySelectorAll('.type-item').forEach(el=>{
+    el.classList.toggle('sel',el.querySelector('.type-name').textContent===t);
+  });
+}
+
+function togglePlatform(k){
+  const arr=S.form.platforms, i=arr.indexOf(k);
+  if(i>-1){ if(arr.length>1) arr.splice(i,1); }
+  else arr.push(k);
+  // re-render platform grid only
+  Object.entries(PLATFORM_INFO).forEach(([id,v])=>{
+    const el=document.querySelector(`.pf-card[onclick*="'${id}'"]`);
+    if(!el) return;
+    Object.values(PLATFORM_INFO).forEach(x=>el.classList.remove(x.selClass));
+    if(S.form.platforms.includes(id)) el.classList.add(v.selClass);
+  });
+}
+
+/* ── FILE HANDLING ── */
+/* ── IMAGE COMPRESSION ── */
+function compressImage(file, maxPx=1024, quality=0.75){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let {width:w,height:h}=img;
+      if(w>maxPx||h>maxPx){
+        if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}
+        else{w=Math.round(w*maxPx/h);h=maxPx;}
+      }
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); resolve(null); };
+    img.src=url;
+  });
+}
+
+function hf(files){
+  const arr=Array.from(files).slice(0,4-S.photos.length);
+  if(!arr.length) return;
+  let done=0;
+  arr.forEach(file=>{
+    if(!file.type.startsWith('image/')) return;
+    // show preview immediately with original, compress async
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const originalUrl=e.target.result;
+      const idx=S.photos.push({file,dataUrl:originalUrl,compressed:null,name:file.name})-1;
+      // compress for API
+      compressImage(file,1024,0.75).then(compressed=>{
+        if(S.photos[idx]) S.photos[idx].compressed=compressed||originalUrl;
+        done++;
+        if(done===arr.length) render();
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function rp(i){ S.photos.splice(i,1); render(); }
+function dov(e){e.preventDefault();document.getElementById('uz').classList.add('drag');}
+function dlv(){document.getElementById('uz').classList.remove('drag');}
+function drf(e){e.preventDefault();dlv();hf(e.dataTransfer.files);}
+
+function next(from){
+  if(from===1&&!S.form.companyName.trim()){alert('会社名を入力してください');return;}
+  if(from===1&&S.form.platforms.length===0){alert('プラットフォームを1つ以上選択してください');return;}
+  S.step=from+1; render();
+}
+function prev(){ S.step--; render(); }
+function goBack(){ S.step=1; S.result=null; S.error=null; render(); }
+
+/* ── COPY ── */
+function copyText(btn,elId){
+  const el=document.getElementById(elId);
+  const text=el?el.textContent:'';
+  navigator.clipboard.writeText(text).then(()=>showToast());
+}
+function copyAll(platformId){
+  // Collect all text from this platform's card
+  const cap=document.getElementById(platformId+'-cap');
+  const tags=document.getElementById(platformId+'-tags');
+  const scr=document.getElementById(platformId+'-scr');
+  const st=document.getElementById(platformId+'-st');
+  const th=document.getElementById(platformId+'-th');
+  const parts=[cap,tags,scr,st,th].filter(Boolean).map(el=>el.textContent.trim()).filter(Boolean);
+  navigator.clipboard.writeText(parts.join('\n\n')).then(()=>showToast('全てコピーしました'));
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✓ '+(msg||'コピーしました');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+/* ── GENERATE ── */
+async function generate(){
+  if(S.photos.length===0){alert('写真を1枚以上アップロードしてください');return;}
+  S.step=3; S.result=null; S.error=null; render();
+
+  const ids=['gs1','gs2','gs3','gs4','gs5'];
+  let idx=0;
+  function tick(){
+    if(idx>0){const p=document.getElementById(ids[idx-1]);if(p){p.classList.remove('act');p.classList.add('done');}}
+    if(idx<ids.length){const el=document.getElementById(ids[idx]);if(el)el.classList.add('act');idx++;setTimeout(tick,1000);}
+  }
+  tick();
+
+  const f=S.form;
+  // Use compressed version for API, fallback to original
+  const imgBlocks=S.photos.map((p,i)=>{
+    const src=p.compressed||p.dataUrl;
+    return [
+      {type:'text',text:`【写真${i+1}：${p.name}】`},
+      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:src.split(',')[1]}}
+    ];
+  }).flat();
+
+  const platList=f.platforms.map(id=>{
+    const p=PLATFORM_INFO[id];
+    let req='';
+    if(id==='instagram') req='caption（300文字程度）, hashtags（20〜25個）, script（リールシナリオ15秒）, story（ストーリー用短文）';
+    if(id==='youtube')   req='caption（YouTube概要欄200文字）, hashtags（10個）, script（ショート動画台本30秒）';
+    if(id==='line')      req='caption（LINE配信文200文字以内、絵文字あり）, hashtags（3〜5個、関連ワード）';
+    if(id==='x')         req='caption（140文字以内）, hashtags（5個）, thread（連投3ツイート案）';
+    return `・${p.name}（${p.sub}）: ${req}`;
+  }).join('\n');
+
+  const prompt=`あなたは日本の住宅会社のSNSマーケティング専門家です。
+以下の写真と情報をもとに、各プラットフォームに最適化されたSNSコンテンツをJSONのみで返してください。バッククォートや説明文は不要。
+
+【会社情報】
+- 会社名: ${f.companyName}（${f.companyArea}）
+- 特徴・売り: ${f.companyStyle}
+- コンテンツタイプ: ${f.contentType}
+- トーン: ${f.tone}
+- キャプションスタイル: ${f.caption_style}
+- CTA: ${f.cta}
+- 写真メモ: ${f.notes}
+
+【生成するプラットフォーム】
+${platList}
+
+【重要指示】
+- ${f.companyName}のブランド感を一貫させる
+- キャプションは日本語で、写真の内容をしっかり反映させること
+- ハッシュタグは住宅・地域・ライフスタイル系を混ぜる
+- CTAは「${f.cta}」に誘導する形で自然に組み込む
+- 投稿スケジュールは平日・週末の最適時間帯を提案
+
+返すJSON:
+{
+  "platforms": [
+    {
+      "id": "instagram または youtube または line または x",
+      "caption": "キャプション本文",
+      "hashtags": ["#ハッシュタグ1","#ハッシュタグ2"],
+      "script": "動画スクリプト（instagram/youtubeのみ）",
+      "story": "ストーリー文案（instagramのみ）",
+      "thread": "連投案（xのみ）"
+    }
+  ],
+  "schedule": [
+    {
+      "platform": "プラットフォーム名",
+      "day": "推奨曜日（例：火曜・金曜）",
+      "time": "推奨時間帯（例：19:00〜21:00）",
+      "reason": "その時間帯が効果的な理由（1文）"
+    }
+  ],
+  "tips": [
+    "エンゲージメントを上げる具体的なヒント（1文）",
+    "ヒント2",
+    "ヒント3"
+  ]
+}
+
+platformsは選択されたプラットフォームの数だけ返すこと。各フィールドは不要な場合nullでなく省略すること。`;
+
+  try{
+    const res=await fetch('/api/ai',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:3500,
+        messages:[{role:'user',content:[{type:'text',text:prompt},...imgBlocks]}]
+      })
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const raw=(data.content||[]).map(i=>i.text||'').join('');
+    const st=raw.indexOf('{'); let js=st>=0?raw.slice(st):raw;
+    js=js.replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(js);}
+    catch(e1){
+      const stk=[]; let ins=false,esc=false,rep=js;
+      for(const ch of js){
+        if(esc){esc=false;continue;} if(ch==='\\'){esc=true;continue;}
+        if(ch==='"'){ins=!ins;continue;} if(ins) continue;
+        if(ch==='{'||ch==='[') stk.push(ch==='{'?'}':']');
+        else if(ch==='}'||ch===']') stk.pop();
+      }
+      rep=rep.replace(/,\s*$/,'');
+      while(stk.length) rep+=stk.pop();
+      try{parsed=JSON.parse(rep);}catch(e2){throw new Error('JSONパースエラー: '+e1.message);}
+    }
+    S.result=parsed;
+    const last=document.getElementById(ids[ids.length-1]);if(last){last.classList.remove('act');last.classList.add('done');}
+    setTimeout(()=>{S.step=4;render();},700);
+  }catch(e){
+    S.error='コンテンツ生成中にエラーが発生しました。<br><br><small style="opacity:.6">'+e.message+'</small>';
+    S.step=4;render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>

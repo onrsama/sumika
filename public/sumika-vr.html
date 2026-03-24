@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — バーチャル住宅ツアー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --red:#903030;--redbg:rgba(144,48,48,.07);--redbdr:rgba(144,48,48,.22);
+  --serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;--r:6px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+
+/* HEADER */
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}
+.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}
+.logo-main b{color:var(--teal);font-weight:600}
+.logo-by{font-size:9.5px;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans)}
+.hm{display:flex;align-items:center;gap:6px}
+.hs-hm{color:var(--ink4);font-size:12px}
+.hc{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.hb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;padding:0;cursor:pointer;transition:color .2s}
+.hb:hover{color:var(--ink)}
+.hb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* STEP BAR */
+.step-bar{background:var(--white);border-bottom:1px solid var(--bdr);padding:12px 40px;display:flex;align-items:center}
+.step-item{display:flex;align-items:center;gap:8px;padding:6px 18px 6px 0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);font-family:var(--sans);cursor:default;transition:color .2s}
+.step-item.active{color:var(--teal)}.step-item.done{color:var(--ink3);cursor:pointer}.step-item.done:hover{color:var(--teal)}
+.step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.step-item.active .step-num{background:var(--teal);border-color:var(--teal);color:#fff}
+.step-sep{width:24px;height:1px;background:var(--bdr2);flex-shrink:0;margin:0 4px}
+
+/* PAGE */
+.page{max-width:960px;margin:0 auto;padding:36px 24px 60px}
+.ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ey::before{content:'';width:16px;height:1px;background:var(--teal)}
+.pt{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.pt em{font-style:italic;color:var(--teal)}
+.ps{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;margin-bottom:28px}
+
+/* UPLOAD */
+.upload-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.sec-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.sec-label svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.upload-zone{border:2px dashed var(--bdr2);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative;display:flex;flex-direction:column;align-items:center;gap:7px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--tdim)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{width:40px;height:40px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.uz-icon svg{width:18px;height:18px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.uz-title{font-size:13px;font-weight:500;color:var(--ink)}
+.uz-sub{font-size:11.5px;color:var(--ink3);font-family:var(--jp)}
+.scene-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.scene-card{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:8px 10px}
+.sc-thumb{width:64px;height:42px;border-radius:4px;object-fit:cover;background:var(--bg2);display:block}
+.sc-idx{font-size:10px;color:var(--ink4);letter-spacing:.06em;margin-bottom:2px}
+.sc-name-input{width:100%;background:transparent;border:none;outline:none;font-size:13px;font-family:var(--jp);color:var(--ink);border-bottom:1px solid var(--bdr);padding:2px 0}
+.sc-name-input:focus{border-bottom-color:var(--teal)}
+.sc-rm{width:24px;height:24px;border-radius:4px;background:none;border:1px solid transparent;color:var(--ink4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.sc-rm:hover{border-color:var(--redbdr);color:var(--red);background:var(--redbg)}
+.sc-rm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.floor-preview{margin-top:12px;border-radius:var(--r);overflow:hidden;background:var(--bg2);position:relative;display:none}
+.floor-preview img{width:100%;display:block;max-height:220px;object-fit:contain}
+.floor-change{position:absolute;bottom:8px;right:8px;background:rgba(28,36,34,.7);color:#fff;border:none;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:20px;cursor:pointer}
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--bdr)}
+.btn-p{background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:none;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-p:hover{background:var(--teal)}.btn-p:disabled{opacity:.35;cursor:not-allowed}
+.btn-g{background:transparent;color:var(--ink2);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--bdr2);border-radius:var(--r);transition:all .2s}
+.btn-g:hover{color:var(--ink);background:var(--bg2)}
+
+/* STEP 2 */
+.setup-layout{display:grid;grid-template-columns:180px 1fr 240px;gap:14px;align-items:start;margin-bottom:20px}
+.setup-scene-list{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.ssl-header{padding:8px 12px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--bdr)}
+.ssl-item{padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;border-bottom:1px solid var(--bdr)}
+.ssl-item:last-child{border-bottom:none}
+.ssl-item:hover{background:var(--bg)}
+.ssl-item.sel{background:var(--tdim);border-left:3px solid var(--teal)}
+.ssl-thumb{width:36px;height:24px;border-radius:3px;object-fit:cover;background:var(--bg2);flex-shrink:0}
+.ssl-name{font-size:11.5px;font-family:var(--jp);color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene-name-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 12px}
+.scene-name-bar label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);flex-shrink:0}
+.scene-name-bar input{flex:1;border:none;outline:none;font-size:13px;font-family:var(--jp);color:var(--ink);background:transparent;border-bottom:1px solid var(--bdr);padding:2px 0}
+.scene-name-bar input:focus{border-bottom-color:var(--teal)}
+
+/* SETUP VIEWER */
+.setup-viewer-wrap{border-radius:var(--r);overflow:hidden;position:relative;background:#111}
+.setup-viewer-wrap #pannellumSetup{height:340px}
+.pin-overlay{position:absolute;inset:0;z-index:10;cursor:crosshair;display:none}
+.pin-overlay.active{display:block}
+.pin-overlay-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(28,36,34,.85);color:#fff;font-size:11px;font-family:var(--jp);padding:6px 18px;border-radius:20px;white-space:nowrap;pointer-events:none}
+
+/* HOTSPOT TOOLS */
+.hs-toolbar{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.hs-add-btn{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--teal);color:#fff;border:none;border-radius:var(--r);padding:8px 14px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.hs-add-btn:hover{background:var(--teald)}.hs-add-btn.active{background:var(--red)}
+.hs-add-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hs-hint{font-size:11px;color:var(--ink3);font-family:var(--jp);flex:1}
+.hs-list{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.hs-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink2);transition:border-color .2s}
+.hs-item.reposition-target{border-color:var(--teal);background:var(--tdim)}
+.hs-item-dot{width:20px;height:20px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;font-weight:700;color:#fff;font-family:var(--sans)}
+.hs-item-label{flex:1}
+.hs-item-actions{display:flex;gap:4px}
+.hs-item-btn{width:22px;height:22px;border-radius:3px;background:none;border:1px solid var(--bdr);color:var(--ink4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.hs-item-btn:hover{border-color:var(--teal);color:var(--teal)}
+.hs-item-btn.rm:hover{border-color:var(--redbdr);color:var(--red)}
+.hs-item-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* FLOOR SETUP */
+.floor-setup-wrap{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.fsw-header{padding:8px 12px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.fsw-controls{display:flex;align-items:center;gap:5px}
+.fsw-btn{font-size:9px;color:var(--teal);background:var(--tdim);border:1px solid var(--tbdr);border-radius:20px;padding:3px 9px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;font-family:var(--sans);transition:all .18s}
+.fsw-btn:hover,.fsw-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.floor-canvas-outer{position:relative;padding:8px;background:var(--bg2);cursor:crosshair}
+#floorSetupCanvas{display:block;max-width:100%;border-radius:3px}
+.floor-legend{padding:7px 12px;border-top:1px solid var(--bdr);font-size:9.5px;color:var(--ink3);font-family:var(--jp);line-height:1.8;display:flex;flex-direction:column;gap:2px}
+.floor-legend span{display:flex;align-items:center;gap:5px}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.no-floor-msg{padding:24px;text-align:center;font-size:12px;color:var(--ink4);font-family:var(--jp)}
+
+/* ══ TOUR MODE ══ */
+.tour-wrap{
+  position:relative;border-radius:var(--r);overflow:hidden;
+  background:#000;box-shadow:0 8px 40px rgba(0,0,0,.2)
+}
+#pannellumTour{width:100%;height:75vh;display:block}
+
+/* FIX 3: Fullscreen — no black area; force pnlm-container to fill */
+.tour-wrap:fullscreen{width:100vw!important;height:100vh!important;border-radius:0}
+.tour-wrap:-webkit-full-screen{width:100vw!important;height:100vh!important;border-radius:0}
+.tour-wrap:-moz-full-screen{width:100vw!important;height:100vh!important;border-radius:0}
+.tour-wrap:fullscreen #pannellumTour,
+.tour-wrap:-webkit-full-screen #pannellumTour,
+.tour-wrap:-moz-full-screen #pannellumTour{height:100vh!important;width:100vw!important}
+.tour-wrap:fullscreen .pnlm-container,
+.tour-wrap:-webkit-full-screen .pnlm-container,
+.tour-wrap:-moz-full-screen .pnlm-container{height:100vh!important;width:100vw!important}
+
+/* Scene name overlay (top center) */
+.tour-scene-name{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  background:rgba(28,36,34,.72);color:#fff;
+  font-family:var(--jp);font-size:13px;font-weight:500;
+  padding:6px 20px;border-radius:20px;
+  pointer-events:none;z-index:10;backdrop-filter:blur(6px);
+  white-space:nowrap;letter-spacing:.03em
+}
+
+/* FIX 1: MINIMAP top-right */
+.minimap{
+  position:absolute;top:16px;right:16px;z-index:12;
+  border-radius:var(--r);overflow:hidden;
+  box-shadow:0 3px 16px rgba(0,0,0,.4);
+  border:1.5px solid rgba(255,255,255,.3);
+  transition:opacity .25s,transform .25s;
+  background:var(--white)
+}
+.minimap.hidden-map{opacity:0;pointer-events:none;transform:scale(.92) translateY(-6px)}
+.minimap-top{display:flex;align-items:center;justify-content:space-between;padding:4px 8px 4px 10px;background:rgba(28,36,34,.8)}
+.minimap-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8);font-family:var(--sans);display:flex;align-items:center;gap:5px}
+.minimap-label svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.minimap-close{width:18px;height:18px;border-radius:3px;background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+.minimap-close:hover{background:rgba(255,255,255,.3)}
+.minimap-close svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#minimapCanvas{display:block}
+/* ① Persistent show button — always floating at top-right when minimap is hidden */
+.minimap-show-btn{
+  position:absolute;top:16px;right:16px;z-index:13;
+  align-items:center;gap:5px;
+  background:rgba(28,36,34,.65);color:rgba(255,255,255,.85);border:none;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--sans);
+  padding:6px 12px;border-radius:20px;cursor:pointer;
+  backdrop-filter:blur(6px);transition:background .2s;display:none
+}
+.minimap-show-btn:hover{background:rgba(31,122,114,.8);color:#fff}
+.minimap-show-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.minimap-show-btn.show{display:flex}
+
+/* FIX 4: Scene strip centered + fold caret */
+.strip-toggle-btn{
+  position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  background:rgba(28,36,34,.65);color:rgba(255,255,255,.85);border:none;
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--sans);
+  padding:5px 14px;border-radius:20px 20px 0 0;cursor:pointer;
+  backdrop-filter:blur(4px);z-index:11;white-space:nowrap;
+  transition:background .2s
+}
+.strip-toggle-btn:hover{background:rgba(28,36,34,.85)}
+.strip-toggle-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+.strip-toggle-btn.folded svg{transform:rotate(180deg)}
+.tour-scene-strip{
+  position:absolute;bottom:0;left:0;right:0;z-index:10;
+  padding:10px 20px 12px;
+  background:linear-gradient(to top,rgba(14,20,18,.92) 0%,rgba(14,20,18,0) 100%);
+  display:flex;gap:10px;align-items:flex-end;justify-content:center;
+  overflow-x:auto;scrollbar-width:none;
+  transition:transform .28s ease,opacity .28s ease;transform-origin:bottom
+}
+.tour-scene-strip.strip-folded{transform:translateY(100%);opacity:0;pointer-events:none}
+.tour-scene-strip::-webkit-scrollbar{display:none}
+.tss-item{
+  flex-shrink:0;border-radius:var(--r);overflow:hidden;cursor:pointer;
+  border:2px solid rgba(255,255,255,.18);transition:all .22s;
+  width:90px;background:rgba(28,36,34,.6);opacity:.7;transform:translateY(2px)
+}
+.tss-item:hover{border-color:rgba(255,255,255,.55);opacity:.9;transform:translateY(-2px)}
+.tss-item.active{
+  border-color:var(--teal);
+  box-shadow:0 0 0 2px var(--teall),0 4px 16px rgba(31,122,114,.45);
+  opacity:1;transform:translateY(-5px) scale(1.06);width:100px
+}
+.tss-item img{width:100%;height:62px;object-fit:cover;display:block}
+.tss-item.active img{height:68px}
+.tss-label{font-size:9px;font-family:var(--jp);color:rgba(255,255,255,.8);padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.tss-item.active .tss-label{color:#fff;font-weight:500;background:rgba(31,122,114,.5)}
+
+/* TOUR CONTROLS BAR */
+.tour-controls{display:flex;align-items:center;gap:10px;margin-top:10px}
+.tc-btn{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--white);color:var(--ink2);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 14px;cursor:pointer;transition:all .2s}
+.tc-btn:hover{border-color:var(--teal);color:var(--teal)}
+.tc-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tc-map-toggle{display:none}
+
+/* CUSTOM PIN */
+.pnlm-hotspot-base.pin-nav-container{width:0;height:0;overflow:visible;cursor:pointer}
+.pin-nav{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer}
+.pin-circle{width:32px;height:32px;border-radius:50%;background:var(--teal,#1F7A72);border:2.5px solid rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-family:Sora,sans-serif;transition:transform .2s,background .2s}
+.pin-nav:hover .pin-circle{transform:scale(1.15);background:#2A9088}
+.pin-caret{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid rgba(255,255,255,.88);margin-top:-1px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.pin-label{background:rgba(28,36,34,.82);color:#fff;font-family:var(--jp);font-size:11px;padding:3px 10px;border-radius:20px;margin-top:4px;white-space:nowrap;backdrop-filter:blur(4px);opacity:0;transform:translateY(4px);transition:all .2s;pointer-events:none}
+.pin-nav:hover .pin-label{opacity:1;transform:translateY(0)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(28,36,34,.55);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--white);border-radius:var(--r);padding:28px 32px;max-width:380px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.2)}
+.modal-title{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--ink);margin-bottom:6px}
+.modal-sub{font-size:12.5px;color:var(--ink2);font-family:var(--jp);line-height:1.75;margin-bottom:20px}
+.modal-select{width:100%;background:var(--bg);border:1.5px solid var(--bdr2);border-radius:var(--r);padding:10px 13px;font-size:13px;font-family:var(--jp);color:var(--ink);outline:none;margin-bottom:16px}
+.modal-select:focus{border-color:var(--teal)}
+.modal-btns{display:flex;gap:10px}
+.mbtn{flex:1;padding:10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r);cursor:pointer;transition:all .2s;font-family:var(--sans)}
+.mbtn.cancel{background:var(--bg2);border:1px solid var(--bdr);color:var(--ink2)}
+.mbtn.confirm{background:var(--ink);border:none;color:#fff;font-weight:500}
+
+/* ── DIVIDER ── */
+.upload-or{display:flex;align-items:center;gap:12px;margin:20px 0}
+.upload-or::before,.upload-or::after{content:'';flex:1;height:1px;background:var(--bdr2)}
+.upload-or span{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink4);white-space:nowrap}
+.cam-entry-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:20px;border:2px dashed var(--bdr2);border-radius:var(--r);background:var(--white);cursor:pointer;transition:all .25s;font-family:var(--sans);color:var(--ink2);font-size:13px;font-weight:500}
+.cam-entry-btn:hover{border-color:var(--teal);background:var(--tdim);color:var(--teal)}
+.cam-entry-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ── CAMERA MODAL — Google Photo Sphere style ── */
+#camModal{position:fixed;inset:0;z-index:300;background:#000;display:none}
+#camModal.show{display:block}
+/* Layer 1: equirectangular preview - black=not captured, photo=captured */
+#camEquiCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block}
+/* Layer 2: live camera small window showing current view */
+#camVideo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(180px,30vw,260px);height:clamp(120px,20vw,180px);border-radius:8px;object-fit:cover;z-index:2;display:block}
+#camVideo.front-cam{transform:translate(-50%,-50%) scaleX(-1)}
+#camLiveBorder{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(186px,30.5vw,266px);height:clamp(126px,20.5vw,186px);border-radius:10px;border:2px solid rgba(255,255,255,.6);z-index:3;pointer-events:none;box-shadow:0 0 24px rgba(255,255,255,.15)}
+/* Layer 4: dot + crosshair canvas */
+#camDotCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:5;cursor:crosshair}
+.cam-topbar{position:absolute;top:0;left:0;right:0;z-index:10;padding:env(safe-area-inset-top,12px) 16px 12px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.65) 0%,transparent 100%)}
+.cam-title{font-size:13px;color:#fff;font-family:var(--jp);letter-spacing:.02em;flex:1;text-align:center;padding:0 8px}
+.cam-close-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.cam-close-btn svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cam-btm{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:14px 20px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 100%);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.cam-progress-txt{font-size:12px;color:rgba(255,255,255,.75);font-family:var(--jp);flex:1}
+.cam-shutter-btn{width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.9);border:4px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .12s;box-shadow:0 2px 20px rgba(0,0,0,.5)}
+.cam-shutter-btn:active{transform:scale(.9)}
+.cam-shutter-inner{width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.cam-gen-btn{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--teal);color:#fff;border:none;border-radius:30px;padding:10px 16px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:var(--sans);transition:background .2s;flex:1}
+.cam-gen-btn:disabled{opacity:.35;cursor:not-allowed}
+.cam-gen-btn:not(:disabled):hover{background:var(--teald)}
+.cam-gen-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* ── STITCH PROGRESS OVERLAY ── */
+.stitch-overlay{position:fixed;inset:0;z-index:400;background:rgba(14,20,18,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.stitch-overlay.show{display:flex}
+.stitch-ring{width:80px;height:80px;border-radius:50%;border:1px solid rgba(255,255,255,.1);position:relative;display:flex;align-items:center;justify-content:center}
+.stitch-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stitch-pct{font-family:var(--serif);font-size:32px;font-weight:300;color:#fff}
+.stitch-label{font-size:13px;color:rgba(255,255,255,.6);font-family:var(--jp)}
+.stitch-bar-wrap{width:260px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.stitch-bar{height:100%;background:var(--teal);border-radius:2px;transition:width .1s;width:0%}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="hm"><span class="hs-hm">Sales & CX</span><span class="hs-hm">›</span><span class="hc">バーチャル住宅ツアー</span></div>
+  <button class="hb" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>サービス一覧</button>
+</header>
+
+<div class="step-bar">
+  <div class="step-item active" id="sbar1" onclick="tryGoStep(1)"><div class="step-num">1</div>アップロード</div>
+  <div class="step-sep"></div>
+  <div class="step-item" id="sbar2" onclick="tryGoStep(2)"><div class="step-num">2</div>シーン設定</div>
+  <div class="step-sep"></div>
+  <div class="step-item" id="sbar3" onclick="tryGoStep(3)"><div class="step-num">3</div>ツアー</div>
+</div>
+
+<div class="page">
+<!-- STEP 1 -->
+<div id="step1">
+  <div class="ey">Step 1 of 3</div>
+  <h1 class="pt">素材を<em>アップロード</em></h1>
+  <p class="ps">360°画像（複数）とフロアプランをアップロードしてください。各画像が1つのシーンになります。</p>
+  <div class="upload-pair">
+    <div>
+      <label class="sec-label"><svg viewBox="0 0 24 24"><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>360° 画像（複数可）</label>
+      <div class="upload-zone" id="uz360" ondragover="dov(event,'uz360')" ondragleave="dlv('uz360')" ondrop="d360(event)">
+        <input type="file" accept="image/*" multiple id="fi360" onchange="add360Files(this.files)">
+        <div class="uz-icon"><svg viewBox="0 0 24 24"><path d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+        <div class="uz-title">360° 画像を選択</div>
+        <div class="uz-sub">クリックまたはドラッグ＆ドロップ · 複数選択可</div>
+      </div>
+      <div class="scene-grid" id="sceneGrid"></div>
+      <!-- Camera entry -->
+      <div class="upload-or"><span>または</span></div>
+      <button class="cam-entry-btn" onclick="openCameraMode()">
+        <svg viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
+        カメラで撮影して360°を作成
+      </button>
+    <div>
+      <label class="sec-label"><svg viewBox="0 0 24 24"><path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>フロアプラン（任意）</label>
+      <div class="upload-zone" id="uzFloor" ondragover="dov(event,'uzFloor')" ondragleave="dlv('uzFloor')" ondrop="dFloor(event)">
+        <input type="file" accept="image/*" id="fiFloor" onchange="setFloor(this.files[0])">
+        <div class="uz-icon"><svg viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg></div>
+        <div class="uz-title">フロアプランを選択</div>
+        <div class="uz-sub">JPG / PNG · 平面図または間取り図</div>
+      </div>
+      <div class="floor-preview" id="floorPreview">
+        <img id="floorPreviewImg" src="" alt="floor">
+        <button class="floor-change" onclick="clearFloor()">変更</button>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" id="step1Next" onclick="goStep(2)" disabled>シーン設定へ →</button>
+    <span id="step1Hint" style="font-size:12px;color:var(--ink3);font-family:var(--jp)">360°画像を1枚以上アップロードしてください</span>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div id="step2" class="hidden">
+  <div class="ey">Step 2 of 3</div>
+  <h1 class="pt">シーンと<em>ナビを設定</em></h1>
+  <p class="ps">各シーンにナビゲーションピンを追加し、フロアプラン上でシーン位置と初期カメラ方向を設定してください。</p>
+  <div class="setup-layout">
+    <div class="setup-scene-list">
+      <div class="ssl-header">シーン一覧</div>
+      <div id="setupSceneList"></div>
+    </div>
+    <div>
+      <div class="scene-name-bar">
+        <label>シーン名</label>
+        <input type="text" id="sceneNameInput" placeholder="例：リビング" onchange="updateSceneName(this.value)">
+      </div>
+      <div class="setup-viewer-wrap" style="position:relative">
+        <div id="pannellumSetup"></div>
+        <div class="pin-overlay" id="pinOverlay">
+          <div class="pin-overlay-hint" id="pinOverlayHint">クリックしてピンを配置</div>
+        </div>
+      </div>
+      <div class="hs-toolbar">
+        <button class="hs-add-btn" id="addPinBtn" onclick="toggleAddPin()">
+          <svg viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>ピンを追加
+        </button>
+        <span class="hs-hint" id="addPinHint">360°ビューをクリックして移動ピンを配置</span>
+      </div>
+      <div class="hs-list" id="hsList"></div>
+    </div>
+    <div class="floor-setup-wrap">
+      <div class="fsw-header">
+        フロアプラン
+        <div class="fsw-controls">
+          <button class="fsw-btn" id="btnSetPos" onclick="setFloorMode('pos')">位置</button>
+          <button class="fsw-btn" id="btnSetDir" onclick="setFloorMode('dir')">方向</button>
+        </div>
+      </div>
+      <div class="floor-canvas-outer" id="floorCanvasOuter">
+        <canvas id="floorSetupCanvas" onclick="onFloorClick(event)"></canvas>
+        <div class="no-floor-msg" id="noFloorMsg">フロアプランが<br>アップロードされていません</div>
+      </div>
+      <div class="floor-legend">
+        <span><span class="leg-dot" style="background:#1F7A72"></span>現在のシーン（矢印＝カメラ初期方向）</span>
+        <span><span class="leg-dot" style="background:rgba(28,36,34,.4)"></span>他のシーン</span>
+        <span style="color:var(--ink4);font-size:9px;margin-top:2px">
+          ① 「位置」→クリックでシーン位置を設定<br>
+          ② 「方向」→クリックでカメラ初期方向を設定
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" onclick="goStep(3)">ツアーを開始 →</button>
+    <button class="btn-g" onclick="goStep(1)">← 戻る</button>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div id="step3" class="hidden">
+  <div class="ey">バーチャルツアー</div>
+  <h1 class="pt">住宅<em>360°ツアー</em></h1>
+  <div class="tour-wrap" id="tourWrap">
+    <div id="pannellumTour"></div>
+    <div class="tour-scene-name" id="tourSceneName"></div>
+    <!-- ① Minimap top-right -->
+    <div class="minimap hidden-map" id="tourMinimap">
+      <div class="minimap-top">
+        <span class="minimap-label"><svg viewBox="0 0 24 24"><path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>フロアプラン</span>
+        <button class="minimap-close" onclick="toggleMinimap()"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg></button>
+      </div>
+      <canvas id="minimapCanvas"></canvas>
+    </div>
+    <!-- ① Persistent show button when minimap hidden -->
+    <button class="minimap-show-btn" id="minimapShowBtn" onclick="toggleMinimap()">
+      <svg viewBox="0 0 24 24"><path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>
+      フロアプラン
+    </button>
+    <!-- ④ Strip fold toggle + scene strip -->
+    <button class="strip-toggle-btn" id="stripToggleBtn" onclick="toggleStrip()">
+      <svg viewBox="0 0 24 24"><path d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+      シーン一覧
+    </button>
+    <div class="tour-scene-strip" id="tourSceneStrip"></div>
+  </div>
+  <div class="tour-controls">
+    <button class="btn-g" onclick="goStep(2)">← 設定に戻る</button>
+    <button class="tc-btn" onclick="toggleFullscreen()">
+      <svg viewBox="0 0 24 24"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>フルスクリーン
+    </button>
+    <button class="tc-btn tc-map-toggle" id="tcMapToggle" onclick="toggleMinimap()">
+      <svg viewBox="0 0 24 24"><path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>フロアプラン
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal-box">
+    <div class="modal-title">移動先シーンを選択</div>
+    <div class="modal-sub">このピンをクリックしたとき、どのシーンに移動しますか？</div>
+    <select class="modal-select" id="pinTargetSelect"></select>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closePinModal(false)">キャンセル</button>
+      <button class="mbtn confirm" onclick="closePinModal(true)">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CAMERA MODE MODAL ══ -->
+<div id="camModal">
+  <!-- Background: equirectangular preview (black → fills as you shoot) -->
+  <canvas id="camEquiCanvas"></canvas>
+  <!-- Center: live camera view window -->
+  <video id="camVideo" autoplay playsinline muted></video>
+  <div id="camLiveBorder"></div>
+  <!-- Dot + crosshair overlay -->
+  <canvas id="camDotCanvas"></canvas>
+  <!-- Top bar -->
+  <div class="cam-topbar">
+    <div style="width:34px"></div>
+    <div class="cam-title" id="camTitle">カメラを各ドットに合わせてください</div>
+    <button class="cam-close-btn" onclick="closeCameraMode()"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg></button>
+  </div>
+  <!-- Bottom bar -->
+  <div class="cam-btm">
+    <div class="cam-progress-txt" id="camProgressTxt">0 / 43 完了</div>
+    <button class="cam-shutter-btn" onclick="captureManual()" title="手動撮影">
+      <div class="cam-shutter-inner"></div>
+    </button>
+    <button class="cam-gen-btn" id="camGenBtn" onclick="stitchAndAdd()" disabled>
+      <svg viewBox="0 0 24 24"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+      360°を生成
+    </button>
+  </div>
+</div>
+
+<!-- STITCH PROGRESS -->
+<div class="stitch-overlay" id="stitchOverlay">
+  <div class="stitch-ring"><span class="stitch-pct" id="stitchPct">0%</span></div>
+  <div class="stitch-label">360°画像を合成中...</div>
+  <div class="stitch-bar-wrap"><div class="stitch-bar" id="stitchBar"></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
+<script>
+/* ══ STATE ══ */
+const S={
+  scenes:[],  // {id,name,url,thumbUrl,hotspots:[{pitch,yaw,target}],floorX,floorY,floorYaw}
+  floorPlan:null,curScene:0,step:1,
+  addPinMode:false,
+  repositionIdx:-1,  // FIX 2: which hotspot is being repositioned (-1 = none)
+  pendingPin:null,
+  floorMode:'pos',
+};
+let setupViewer=null,tourViewer=null,minimapRaf=null,floorImg=null;
+let _minimapVisible=false;
+
+/* ══ STEP NAV ══ */
+function goStep(n){
+  if(n===2&&S.scenes.length===0)return;
+  if(S.step===2&&n!==2)destroySetupViewer();
+  if(S.step===3&&n!==3)destroyTourViewer();
+  S.step=n;
+  ['step1','step2','step3'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i+1!==n));
+  ['sbar1','sbar2','sbar3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('active','done');
+    if(i+1===n)el.classList.add('active');
+    else if(i+1<n)el.classList.add('done');
+  });
+  if(n===2)initSetupStep();
+  if(n===3)initTourStep();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function tryGoStep(n){if(n<S.step)goStep(n);}
+
+/* ══ STEP 1 ══ */
+function dov(e,id){e.preventDefault();document.getElementById(id).classList.add('drag');}
+function dlv(id){document.getElementById(id).classList.remove('drag');}
+function d360(e){e.preventDefault();dlv('uz360');add360Files(e.dataTransfer.files);}
+function dFloor(e){e.preventDefault();dlv('uzFloor');setFloor(e.dataTransfer.files[0]);}
+
+async function add360Files(files){
+  for(const f of Array.from(files)){
+    if(!f.type.startsWith('image/'))continue;
+    const url=URL.createObjectURL(f);
+    S.scenes.push({id:'sc_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+      name:f.name.replace(/\.[^.]+$/,''),url,thumbUrl:url,hotspots:[],
+      floorX:null,floorY:null,floorYaw:0});
+  }
+  renderSceneGrid();updateStep1UI();
+}
+function setFloor(f){
+  if(!f||!f.type.startsWith('image/'))return;
+  const url=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=()=>{
+    S.floorPlan={url,w:img.naturalWidth,h:img.naturalHeight};
+    floorImg=img;
+    document.getElementById('floorPreview').style.display='block';
+    document.getElementById('floorPreviewImg').src=url;
+  };
+  img.src=url;
+}
+function clearFloor(){
+  S.floorPlan=null;floorImg=null;
+  document.getElementById('floorPreview').style.display='none';
+  document.getElementById('floorPreviewImg').src='';
+  document.getElementById('fiFloor').value='';
+}
+function updateStep1UI(){
+  const h=S.scenes.length>0;
+  document.getElementById('step1Next').disabled=!h;
+  document.getElementById('step1Hint').style.display=h?'none':'';
+}
+function renderSceneGrid(){
+  document.getElementById('sceneGrid').innerHTML=S.scenes.map((sc,i)=>`
+    <div class="scene-card">
+      <img class="sc-thumb" src="${sc.thumbUrl}" alt="">
+      <div><div class="sc-idx">SCENE ${String(i+1).padStart(2,'0')}</div>
+        <input class="sc-name-input" type="text" value="${sc.name}" placeholder="シーン名" onchange="S.scenes[${i}].name=this.value;renderSetupSceneList()">
+      </div>
+      <button class="sc-rm" onclick="removeScene(${i})"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg></button>
+    </div>`).join('');
+}
+function removeScene(i){URL.revokeObjectURL(S.scenes[i].url);S.scenes.splice(i,1);renderSceneGrid();updateStep1UI();}
+
+/* ══ STEP 2 ══ */
+function initSetupStep(){
+  S.curScene=Math.min(S.curScene,S.scenes.length-1);
+  renderSetupSceneList();
+  loadSetupScene(S.curScene);
+  setFloorMode('pos');
+  renderFloorSetup();
+}
+function renderSetupSceneList(){
+  document.getElementById('setupSceneList').innerHTML=S.scenes.map((sc,i)=>`
+    <div class="ssl-item${i===S.curScene?' sel':''}" onclick="loadSetupScene(${i})">
+      <img class="ssl-thumb" src="${sc.thumbUrl}" alt="">
+      <span class="ssl-name">${sc.name}</span>
+    </div>`).join('');
+}
+function updateSceneName(val){
+  if(S.scenes[S.curScene])S.scenes[S.curScene].name=val;
+  renderSetupSceneList();renderSceneGrid();
+}
+function loadSetupScene(i){
+  if(i===S.curScene&&setupViewer){document.getElementById('sceneNameInput').value=S.scenes[i].name;return;}
+  S.curScene=i;S.repositionIdx=-1;
+  renderSetupSceneList();
+  if(S.addPinMode)cancelPinMode();
+  destroySetupViewer();
+  const sc=S.scenes[i];
+  document.getElementById('sceneNameInput').value=sc.name;
+  setupViewer=pannellum.viewer('pannellumSetup',{
+    type:'equirectangular',
+    panorama:sc.url,
+    autoLoad:true,showControls:false,mouseZoom:true,
+    yaw:0,  // FIX 5: always start at yaw=0; floorYaw is only a reference for the minimap
+    hotSpots:sc.hotspots.map((hs,hi)=>({
+      pitch:hs.pitch,yaw:hs.yaw,
+      type:'custom',cssClass:'pin-nav-container',
+      createTooltipFunc:createHotspotEl,
+      createTooltipArgs:{label:String(hi+1),name:S.scenes[hs.target]?.name||'?'},
+    })),
+  });
+  renderHsList();drawFloorSetup();
+}
+function destroySetupViewer(){
+  if(setupViewer){try{setupViewer.destroy();}catch(e){}setupViewer=null;}
+  document.getElementById('pannellumSetup').innerHTML='';
+}
+
+/* HOTSPOT ELEMENT */
+function createHotspotEl(container,args){
+  container.innerHTML='';
+  const div=document.createElement('div');
+  div.className='pin-nav';
+  div.innerHTML=`<div class="pin-circle">${args.label}</div><div class="pin-caret"></div><div class="pin-label">${args.name}</div>`;
+  container.appendChild(div);
+}
+
+/* ── PIN ADD MODE ── */
+function cancelPinMode(){
+  S.addPinMode=false;S.repositionIdx=-1;
+  const btn=document.getElementById('addPinBtn');
+  const ov=document.getElementById('pinOverlay');
+  btn.classList.remove('active');
+  btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg> ピンを追加';
+  ov.classList.remove('active');
+  document.getElementById('addPinHint').textContent='360°ビューをクリックして移動ピンを配置';
+  renderHsList();
+}
+function toggleAddPin(){
+  if(S.addPinMode){cancelPinMode();return;}  // ② cancel any active mode (add OR reposition)
+  S.addPinMode=true;S.repositionIdx=-1;
+  const btn=document.getElementById('addPinBtn');
+  btn.classList.add('active');
+  btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg> キャンセル';
+  document.getElementById('pinOverlay').classList.add('active');
+  document.getElementById('pinOverlayHint').textContent='クリックしてピンを配置';
+  document.getElementById('addPinHint').textContent='360°ビューをクリックしてピンを配置してください';
+}
+
+/* FIX 2: Reposition existing pin */
+function startReposition(idx){
+  S.repositionIdx=idx;S.addPinMode=true;
+  const btn=document.getElementById('addPinBtn');
+  btn.classList.add('active');
+  btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg> キャンセル';
+  document.getElementById('pinOverlay').classList.add('active');
+  document.getElementById('pinOverlayHint').textContent='ピン '+(idx+1)+' の新しい位置をクリック';
+  document.getElementById('addPinHint').textContent='ピン '+(idx+1)+' の移動先をクリック';
+  renderHsList();
+}
+
+document.getElementById('pinOverlay').addEventListener('click',function(e){
+  if(!S.addPinMode||!setupViewer)return;
+  const coords=setupViewer.mouseEventToCoords(e);
+  if(!coords)return;
+  if(S.repositionIdx>=0){
+    // Reposition existing pin
+    S.scenes[S.curScene].hotspots[S.repositionIdx].pitch=coords[0];
+    S.scenes[S.curScene].hotspots[S.repositionIdx].yaw=coords[1];
+    const tmp=S.curScene; S.curScene=-1; S.repositionIdx=-1;
+    cancelPinMode();
+    loadSetupScene(tmp);
+  } else {
+    // New pin
+    S.pendingPin={pitch:coords[0],yaw:coords[1]};
+    cancelPinMode();
+    openPinModal();
+  }
+});
+
+function openPinModal(){
+  const sel=document.getElementById('pinTargetSelect');
+  sel.innerHTML=S.scenes.map((sc,i)=>i===S.curScene?null:`<option value="${i}">${sc.name}</option>`).filter(Boolean).join('');
+  if(!sel.options.length){alert('移動先のシーンがありません');return;}
+  document.getElementById('pinModal').classList.add('show');
+}
+function closePinModal(ok){
+  document.getElementById('pinModal').classList.remove('show');
+  if(!ok||!S.pendingPin)return;
+  const target=parseInt(document.getElementById('pinTargetSelect').value);
+  S.scenes[S.curScene].hotspots.push({pitch:S.pendingPin.pitch,yaw:S.pendingPin.yaw,target});
+  S.pendingPin=null;
+  const tmp=S.curScene;S.curScene=-1;loadSetupScene(tmp);
+}
+function removeHotspot(i){S.scenes[S.curScene].hotspots.splice(i,1);const t=S.curScene;S.curScene=-1;loadSetupScene(t);}
+function renderHsList(){
+  const el=document.getElementById('hsList');
+  const hs=S.scenes[S.curScene]?.hotspots||[];
+  el.innerHTML=hs.length===0
+    ?'<div style="font-size:12px;color:var(--ink4);font-family:var(--jp);padding:6px 0">ピンがありません</div>'
+    :hs.map((h,i)=>`
+      <div class="hs-item${S.repositionIdx===i?' reposition-target':''}">
+        <div class="hs-item-dot">${i+1}</div>
+        <span class="hs-item-label">${S.scenes[h.target]?.name||'?'} へ移動</span>
+        <div class="hs-item-actions">
+          <button class="hs-item-btn" onclick="startReposition(${i})" title="位置を変更">
+            <svg viewBox="0 0 24 24"><path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+          </button>
+          <button class="hs-item-btn rm" onclick="removeHotspot(${i})" title="削除">
+            <svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+}
+
+/* FLOOR SETUP */
+function setFloorMode(m){
+  S.floorMode=m;
+  document.getElementById('btnSetPos').classList.toggle('active',m==='pos');
+  document.getElementById('btnSetDir').classList.toggle('active',m==='dir');
+}
+function renderFloorSetup(){
+  const canvas=document.getElementById('floorSetupCanvas'),noMsg=document.getElementById('noFloorMsg');
+  if(!floorImg){canvas.style.display='none';noMsg.style.display='block';return;}
+  noMsg.style.display='none';canvas.style.display='block';
+  const maxW=(document.getElementById('floorCanvasOuter').clientWidth||220)-16;
+  const scale=maxW/floorImg.naturalWidth;
+  canvas.width=maxW;canvas.height=Math.round(floorImg.naturalHeight*scale);
+  drawFloorSetup();
+}
+function drawFloorSetup(){
+  const canvas=document.getElementById('floorSetupCanvas');
+  if(!floorImg||!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(floorImg,0,0,canvas.width,canvas.height);
+  const sx=canvas.width/floorImg.naturalWidth,sy=canvas.height/floorImg.naturalHeight;
+  S.scenes.forEach((sc,i)=>{
+    if(sc.floorX===null)return;
+    const x=sc.floorX*sx,y=sc.floorY*sy,cur=i===S.curScene;
+    // ⑥ Fix: arrow angle = floorYaw directly, no +90 offset
+    if(cur){
+      const arcAngle=sc.floorYaw*Math.PI/180;
+      const len=20;
+      const ex=x+Math.cos(arcAngle)*len,ey=y+Math.sin(arcAngle)*len;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);
+      ctx.strokeStyle='#1F7A72';ctx.lineWidth=2.5;ctx.stroke();
+      // arrowhead
+      const hw=6,hlen=8;
+      const perp=arcAngle+Math.PI/2;
+      const base={x:ex-Math.cos(arcAngle)*hlen,y:ey-Math.sin(arcAngle)*hlen};
+      ctx.beginPath();
+      ctx.moveTo(ex,ey);
+      ctx.lineTo(base.x+Math.cos(perp)*hw,base.y+Math.sin(perp)*hw);
+      ctx.lineTo(base.x-Math.cos(perp)*hw,base.y-Math.sin(perp)*hw);
+      ctx.closePath();ctx.fillStyle='#1F7A72';ctx.fill();
+    }
+    ctx.beginPath();ctx.arc(x,y,cur?7:5,0,Math.PI*2);
+    ctx.fillStyle=cur?'#1F7A72':'rgba(28,36,34,.45)';
+    ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    // ⑥ Fix: no scene name text below arrow
+  });
+}
+function onFloorClick(e){
+  if(!floorImg)return;
+  const canvas=document.getElementById('floorSetupCanvas');
+  const rect=canvas.getBoundingClientRect();
+  const rx=(e.clientX-rect.left)/rect.width,ry=(e.clientY-rect.top)/rect.height;
+  const sc=S.scenes[S.curScene];if(!sc)return;
+  if(S.floorMode==='pos'){
+    sc.floorX=rx*floorImg.naturalWidth;sc.floorY=ry*floorImg.naturalHeight;
+  } else {
+    if(sc.floorX===null){alert('先に位置を設定してください');return;}
+    const cx=sc.floorX/floorImg.naturalWidth,cy=sc.floorY/floorImg.naturalHeight;
+    const dx=rx-cx,dy=ry-cy;
+    // FIX 5: store floorYaw as canvas-angle (no -90 offset; used directly in atan2)
+    sc.floorYaw=Math.atan2(dy,dx)*180/Math.PI;
+  }
+  drawFloorSetup();
+}
+
+/* ══ STEP 3 ══ */
+function initTourStep(){_stripFolded=false;renderTourSceneStrip();buildTourViewer(0);}
+function renderTourSceneStrip(){
+  document.getElementById('tourSceneStrip').innerHTML=S.scenes.map((sc,i)=>`
+    <div class="tss-item${i===0?' active':''}" id="tss_${i}" onclick="jumpScene(${i})">
+      <img src="${sc.thumbUrl}" alt="${sc.name}">
+      <div class="tss-label">${sc.name}</div>
+    </div>`).join('');
+}
+function buildTourViewer(startIdx){
+  destroyTourViewer();
+  if(S.scenes.length===0)return;
+  const scenes={};
+  S.scenes.forEach((sc,i)=>{
+    scenes[sc.id]={
+      title:'',type:'equirectangular',panorama:sc.url,
+      yaw:0,  // FIX 5: always load at yaw=0; floorYaw is purely for minimap reference
+      hotSpots:sc.hotspots.map((hs,hi)=>({
+        pitch:hs.pitch,yaw:hs.yaw,
+        type:'custom',cssClass:'pin-nav-container',
+        createTooltipFunc:createHotspotEl,
+        createTooltipArgs:{label:String(hi+1),name:S.scenes[hs.target]?.name||'?'},
+        clickHandlerFunc:()=>{jumpScene(hs.target);},
+        clickHandlerArgs:{},
+      })),
+    };
+  });
+  tourViewer=pannellum.viewer('pannellumTour',{
+    default:{firstScene:S.scenes[startIdx].id,sceneFadeDuration:700,autoLoad:true,showControls:true,showFullscreenCtrl:false,showZoomCtrl:true},
+    scenes,
+  });
+  setTourSceneName(startIdx);
+  tourViewer.on('scenechange',(id)=>{
+    const idx=S.scenes.findIndex(sc=>sc.id===id);
+    updateTourStrip(idx);setTourSceneName(idx);
+    S._curTourScene=idx;
+  });
+  if(floorImg){
+    document.getElementById('tcMapToggle').style.display='flex';
+    S._curTourScene=startIdx;
+    initMinimap();
+    // Show minimap automatically
+    toggleMinimap(true);
+    startMinimapLoop();
+  }
+}
+function setTourSceneName(idx){const el=document.getElementById('tourSceneName');if(el)el.textContent=S.scenes[idx]?.name||'';}
+function jumpScene(idx){
+  if(!tourViewer)return;
+  tourViewer.loadScene(S.scenes[idx].id);
+  updateTourStrip(idx);setTourSceneName(idx);
+  S._curTourScene=idx;
+}
+function updateTourStrip(idx){document.querySelectorAll('.tss-item').forEach((el,i)=>el.classList.toggle('active',i===idx));}
+function destroyTourViewer(){
+  if(minimapRaf){cancelAnimationFrame(minimapRaf);minimapRaf=null;}
+  if(tourViewer){try{tourViewer.destroy();}catch(e){}tourViewer=null;}
+  document.getElementById('pannellumTour').innerHTML='';
+}
+
+/* MINIMAP */
+function initMinimap(){
+  if(!floorImg)return;
+  const canvas=document.getElementById('minimapCanvas');
+  const W=180,H=Math.round(floorImg.naturalHeight*(180/floorImg.naturalWidth));
+  canvas.width=W;canvas.height=H;
+}
+function startMinimapLoop(){
+  const canvas=document.getElementById('minimapCanvas');
+  const ctx=canvas.getContext('2d');
+  function draw(){
+    const W=canvas.width,H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.drawImage(floorImg,0,0,W,H);
+    const sx=W/floorImg.naturalWidth,sy=H/floorImg.naturalHeight;
+    const cur=S._curTourScene||0;
+    S.scenes.forEach((sc,i)=>{
+      if(sc.floorX===null)return;
+      const x=sc.floorX*sx,y=sc.floorY*sy,isCur=i===cur;
+      if(isCur&&tourViewer){
+        // FIX 5: cone direction = floorYaw (reference) + getYaw() (current rotation)
+        // floorYaw is in canvas-angle (atan2 space, y-down)
+        // Pannellum getYaw() is in degrees, 0=forward, +right, -left
+        // Convert: canvas-arc total = (floorYaw + pannYaw) in degrees
+        const pannYaw=tourViewer.getYaw();
+        const totalDeg=sc.floorYaw+pannYaw;
+        const arcAngle=totalDeg*Math.PI/180;
+        const spread=Math.PI/3.5;
+        ctx.beginPath();ctx.moveTo(x,y);
+        ctx.arc(x,y,22,arcAngle-spread,arcAngle+spread);
+        ctx.closePath();ctx.fillStyle='rgba(31,122,114,.5)';ctx.fill();
+      }
+      ctx.beginPath();ctx.arc(x,y,isCur?6:4,0,Math.PI*2);
+      ctx.fillStyle=isCur?'#1F7A72':'rgba(255,255,255,.8)';
+      ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      if(isCur){
+        const txt=sc.name.slice(0,8);
+        ctx.font='bold 9px Sora,sans-serif';
+        const tw=ctx.measureText(txt).width;
+        ctx.fillStyle='rgba(255,255,255,.9)';
+        ctx.fillRect(x-tw/2-3,y+9,tw+6,13);
+        ctx.fillStyle='#1C2422';ctx.textAlign='center';
+        ctx.fillText(txt,x,y+20);
+      }
+    });
+    minimapRaf=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function toggleMinimap(forceShow){
+  const el=document.getElementById('tourMinimap');
+  const showBtn=document.getElementById('minimapShowBtn');
+  if(forceShow===true){_minimapVisible=true;}
+  else{_minimapVisible=!_minimapVisible;}
+  if(_minimapVisible){
+    el.classList.remove('hidden-map');
+    if(showBtn)showBtn.classList.remove('show');
+  } else {
+    el.classList.add('hidden-map');
+    if(showBtn)showBtn.classList.add('show');
+  }
+}
+let _stripFolded=false;
+function toggleStrip(){
+  _stripFolded=!_stripFolded;
+  document.getElementById('tourSceneStrip').classList.toggle('strip-folded',_stripFolded);
+  document.getElementById('stripToggleBtn').classList.toggle('folded',_stripFolded);
+}
+
+/* FULLSCREEN */
+function toggleFullscreen(){
+  const el=document.getElementById('tourWrap');
+  if(!document.fullscreenElement)el.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* INIT */
+updateStep1UI();
+
+/* ═══════════════════════════════════════════════════════
+   CAMERA 360° — Photo Sphere dot-alignment (fixed)
+   
+   Bug fixes:
+   1. projectTarget: use proper 3D sphere math, not tan() alone
+      tan(90°) = Infinity was making dots disappear off-screen
+   2. Show off-screen dots as edge arrows so user knows where to turn
+   3. Camera flip: detect front vs back camera
+   4. DeviceOrientationEvent: correct mapping for portrait mode
+   5. 36 target positions for good coverage
+═══════════════════════════════════════════════════════ */
+
+/* ── 36 target positions using uniform sphere distribution ── */
+function buildTargets(){
+  const pts = [];
+  let id = 0;
+  // Equatorial belt: 12 shots every 30°
+  for(let y=0; y<360; y+=30)
+    pts.push({id:id++, yaw:y, pitch:0,   label:''});
+  // Upper belt 1: 10 shots, pitch=30°
+  for(let y=0; y<360; y+=36)
+    pts.push({id:id++, yaw:y, pitch:30,  label:''});
+  // Upper belt 2: 8 shots, pitch=60°
+  for(let y=0; y<360; y+=45)
+    pts.push({id:id++, yaw:y, pitch:60,  label:''});
+  // Lower belt 1: 10 shots, pitch=-30°
+  for(let y=0; y<360; y+=36)
+    pts.push({id:id++, yaw:y, pitch:-30, label:''});
+  // Zenith + nadir
+  pts.push({id:id++, yaw:0, pitch:88,  label:'↑'});
+  pts.push({id:id++, yaw:0, pitch:-70, label:'↓'});
+  return pts;
+}
+const CAM_TARGETS = buildTargets();   // 43 total
+const MIN_SHOTS   = 20;
+
+const CAM = {
+  stream:   null,
+  shots:    {},         // targetId → {canvas, yaw, pitch, fov}
+  // DeviceOrientation (degrees)
+  camYaw:   0,          // alpha — compass direction camera faces
+  camPitch: 0,          // tilt up/down (0=horizontal, +90=straight up)
+  hasOri:   false,
+  yawRef:   null,       // world yaw of first shot
+  isBack:   true,       // back camera = not mirrored
+  fov:      65,         // HFOV of phone camera in degrees
+  rafId:    null,
+  _resizeCvs: null,
+};
+
+const ALIGN_THRESH = 10;   // degrees — dot inside this circle at center = aligned
+const ALIGN_HOLD   = 750;  // ms to hold before auto-capture
+
+const _r = d => d * Math.PI / 180;
+const _d = r => r * 180 / Math.PI;
+
+/* ── Core: project world-space target onto screen ──
+   Uses proper 3D rotation so tan() overflow can't happen.
+   Returns {x,y,onScreen,angleDeg} or null if behind camera.
+*/
+function projectTarget(tYaw, tPitch, cYaw, cPitch, W, H){
+  // Convert target world angles to unit vector
+  const tyRad = _r(tYaw),   tpRad = _r(tPitch);
+  const tyC   = Math.cos(tyRad), tyS = Math.sin(tyRad);
+  const tpC   = Math.cos(tpRad), tpS = Math.sin(tpRad);
+  // Target in world frame (X=East, Y=North, Z=Up)
+  const tx = tpC * tyS;   // east
+  const ty_w = tpC * tyC;   // north
+  const tz = tpS;           // up
+
+  // Camera look direction in world frame
+  const cyRad = _r(cYaw),   cpRad = _r(cPitch);
+  const cyC   = Math.cos(cyRad), cyS = Math.sin(cyRad);
+  const cpC   = Math.cos(cpRad), cpS = Math.sin(cpRad);
+
+  // Camera axes:
+  //   forward  = (cpC*cyS, cpC*cyC, cpS)
+  //   right    = (cyC,    -cyS,     0)       (horizontal, perpendicular to fwd in XY plane)
+  //   up_cam   = (-cpS*cyS, -cpS*cyC, cpC)
+  const fwdX = cpC*cyS, fwdY = cpC*cyC, fwdZ = cpS;
+  const rgtX = cyC,     rgtY = -cyS,    rgtZ = 0;
+  const upX  = -cpS*cyS, upY = -cpS*cyC, upZ = cpC;
+
+  // Dot product: how far the target is in each camera-space axis
+  const dotFwd = tx*fwdX + ty_w*fwdY + tz*fwdZ;
+  const dotRgt = tx*rgtX + ty_w*rgtY + tz*rgtZ;
+  const dotUp  = tx*upX  + ty_w*upY  + tz*upZ;
+
+  // Behind camera → null
+  if(dotFwd <= 0) return null;
+
+  // Perspective divide
+  const xc = dotRgt / dotFwd;   // tangent of horizontal angle
+  const yc = dotUp  / dotFwd;   // tangent of vertical angle
+
+  // Screen position
+  const hScale = (W * 0.5) / Math.tan(_r(CAM.fov * 0.5));
+  const vScale = hScale;        // square pixels assumed
+  const sx = W * 0.5 + xc * hScale;
+  const sy = H * 0.5 - yc * vScale;
+
+  // Angular distance from screen center
+  const angleDeg = _d(Math.atan(Math.sqrt(xc*xc + yc*yc)));
+
+  const onScreen = sx >= 0 && sx <= W && sy >= 0 && sy <= H;
+  return {x:sx, y:sy, onScreen, angleDeg, xc, yc};
+}
+
+/* ── Clamp off-screen dot to screen edge for arrow indicator ── */
+function clampToEdge(p, W, H, margin){
+  const cx = W/2, cy = H/2;
+  const dx = p.x - cx, dy = p.y - cy;
+  const maxX = W/2 - margin, maxY = H/2 - margin;
+  const scaleX = Math.abs(dx) > maxX ? maxX / Math.abs(dx) : 1;
+  const scaleY = Math.abs(dy) > maxY ? maxY / Math.abs(dy) : 1;
+  const s = Math.min(scaleX, scaleY);
+  return {x: cx + dx*s, y: cy + dy*s};
+}
+
+/* ── Open camera ── */
+async function openCameraMode(){
+  CAM.shots={}; CAM.yawRef=null; CAM.camYaw=0; CAM.camPitch=0;
+  if(CAM.rafId){ cancelAnimationFrame(CAM.rafId); CAM.rafId=null; }
+
+  // Try back camera first
+  let stream = null;
+  const constraints = [
+    {video:{facingMode:'environment', width:{ideal:1920}, height:{ideal:1080}}, audio:false},
+    {video:{facingMode:'user',        width:{ideal:1280}, height:{ideal:720}},  audio:false},
+    {video:true, audio:false}
+  ];
+  for(const c of constraints){
+    try{ stream = await navigator.mediaDevices.getUserMedia(c); break; }
+    catch(e){}
+  }
+  if(!stream){ alert('カメラへのアクセスができません'); return; }
+
+  CAM.stream = stream;
+  const video = document.getElementById('camVideo');
+  video.srcObject = stream;
+
+  // Detect if front or back camera → flip CSS
+  const track = stream.getVideoTracks()[0];
+  const settings = track.getSettings?.() || {};
+  CAM.isBack = settings.facingMode !== 'user';
+  video.classList.toggle('front-cam', !CAM.isBack);
+
+  // Request DeviceOrientation permission (iOS 13+)
+  CAM.hasOri = false;
+  if(typeof DeviceOrientationEvent !== 'undefined'){
+    if(typeof DeviceOrientationEvent.requestPermission === 'function'){
+      try{
+        const r = await DeviceOrientationEvent.requestPermission();
+        CAM.hasOri = (r === 'granted');
+      } catch(e){}
+    } else {
+      CAM.hasOri = true;
+    }
+  }
+  if(CAM.hasOri) window.addEventListener('deviceorientation', _onOrientation, true);
+
+  // Resize canvas
+  CAM._resizeCvs = ()=>{
+    const equi = document.getElementById('camEquiCanvas');
+    const dot  = document.getElementById('camDotCanvas');
+    equi.width = dot.width = window.innerWidth;
+    equi.height = dot.height = window.innerHeight;
+    // Redraw equi with current shots
+    redrawEqui();
+  };
+  CAM._resizeCvs();
+  window.addEventListener('resize', CAM._resizeCvs);
+
+  // ── Mouse/touch: drag to rotate virtual camera + click to capture dot ──
+  let dragActive=false, dragStartX=0, dragStartY=0, dragYaw0=0, dragPitch0=0;
+  const DRAG_SENS = 0.25; // degrees per pixel
+
+  function getClientXY(e){ return e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY}; }
+
+  function onDown(e){
+    e.preventDefault();
+    const {x,y}=getClientXY(e);
+    dragActive=true; dragStartX=x; dragStartY=y;
+    dragYaw0=CAM.camYaw; dragPitch0=CAM.camPitch;
+    CAM._dragging=false;
+  }
+  function onMove(e){
+    if(!dragActive)return; e.preventDefault();
+    const {x,y}=getClientXY(e);
+    const dx=x-dragStartX, dy=y-dragStartY;
+    if(Math.abs(dx)>4||Math.abs(dy)>4) CAM._dragging=true;
+    if(CAM._dragging){
+      CAM.camYaw   = (dragYaw0 + dx*DRAG_SENS + 360) % 360;
+      CAM.camPitch = Math.max(-80, Math.min(80, dragPitch0 - dy*DRAG_SENS));
+    }
+  }
+  function onUp(e){
+    if(!dragActive)return; e.preventDefault();
+    if(!CAM._dragging){
+      // It was a click — find if user clicked on a dot
+      const {x,y}=getClientXY(e);
+      clickCaptureDot(x, y);
+    }
+    dragActive=false; CAM._dragging=false;
+  }
+
+  const dotCvs = document.getElementById('camDotCanvas');
+  dotCvs.addEventListener('mousedown', onDown);
+  dotCvs.addEventListener('touchstart', onDown, {passive:false});
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('mouseup', onUp);
+  window.addEventListener('touchend', onUp);
+
+  CAM._dragCleanup = ()=>{
+    dotCvs.removeEventListener('mousedown', onDown);
+    dotCvs.removeEventListener('touchstart', onDown);
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('touchmove', onMove);
+    window.removeEventListener('mouseup', onUp);
+    window.removeEventListener('touchend', onUp);
+  };
+
+  document.getElementById('camModal').classList.add('show');
+  updateCamUI();
+  startDotLoop();
+}
+
+function _onOrientation(e){
+  if(e.alpha === null || e.beta === null || e.gamma === null) return;
+  // Device held portrait, camera pointing into scene:
+  // alpha = compass yaw (0=North, increases clockwise when viewed from above)
+  // beta  = front tilt: 0=flat face-up, 90=vertical portrait pointing forward
+  // gamma = side tilt (should be near 0 in portrait)
+  //
+  // Camera pitch: 90 - beta (beta=90 → camera pointing horizontal = pitch 0)
+  CAM.camYaw   = e.alpha;
+  CAM.camPitch = 90 - e.beta;
+}
+
+function closeCameraMode(){
+  if(CAM.rafId){ cancelAnimationFrame(CAM.rafId); CAM.rafId=null; }
+  if(CAM.stream){ CAM.stream.getTracks().forEach(t=>t.stop()); CAM.stream=null; }
+  window.removeEventListener('deviceorientation', _onOrientation, true);
+  if(CAM._resizeCvs){ window.removeEventListener('resize', CAM._resizeCvs); CAM._resizeCvs=null; }
+  if(CAM._dragCleanup){ CAM._dragCleanup(); CAM._dragCleanup=null; }
+  document.getElementById('camModal').classList.remove('show');
+  document.getElementById('camVideo').srcObject = null;
+}
+
+/* ── Dot loop ── */
+CAM._lastProjections = [];   // saved for click detection
+
+function startDotLoop(){
+  const cvs = document.getElementById('camDotCanvas');
+  const ctx  = cvs.getContext('2d');  let alignId = -1, alignStart = 0;
+
+  function loop(ts){
+    CAM.rafId = requestAnimationFrame(loop);
+    const W = cvs.width, H = cvs.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Always use CAM.camYaw/camPitch — set by drag OR deviceorientation
+    const cYaw   = CAM.camYaw;
+    const cPitch = CAM.camPitch;
+
+    // ── Project all uncaptured targets ──
+    const projections = [];
+    let closestId = -1, closestAngle = ALIGN_THRESH + 1;
+
+    for(const t of CAM_TARGETS){
+      if(CAM.shots[t.id]) continue;
+      const p = projectTarget(t.yaw, t.pitch, cYaw, cPitch, W, H);
+      if(!p) continue;
+      projections.push({t, p});
+      if(p.onScreen && p.angleDeg < closestAngle){
+        closestAngle = p.angleDeg;
+        closestId = t.id;
+      }
+    }
+    CAM._lastProjections = projections;  // save for click detection
+
+    // ── Draw dots and edge arrows ──
+    for(const {t, p} of projections){
+      const isClosest = t.id === closestId;
+      if(p.onScreen){
+        drawDot(ctx, p.x, p.y, isClosest, p.angleDeg < ALIGN_THRESH);
+      } else {
+        const ep = clampToEdge(p, W, H, 28);
+        drawEdgeArrow(ctx, ep.x, ep.y, p.x, p.y, W, H);
+      }
+    }
+
+    // ── Crosshair ──
+    const aligned = closestId >= 0 && closestAngle < ALIGN_THRESH;
+    drawCrosshair(ctx, W/2, H/2, aligned);
+
+    // ── Auto-capture hold arc ──
+    if(aligned){
+      if(closestId !== alignId){ alignId = closestId; alignStart = ts; }
+      const held = ts - alignStart;
+      drawHoldArc(ctx, W/2, H/2, held / ALIGN_HOLD);
+      if(held >= ALIGN_HOLD){
+        alignId = -1; alignStart = 0;
+        doCapture(closestId, cYaw, cPitch);
+      }
+    } else {
+      alignId = -1;
+    }
+
+    // ── Instruction text ──
+    const done  = Object.keys(CAM.shots).length;
+    const total = CAM_TARGETS.length;
+    const offScreen = projections.filter(({p})=>!p.onScreen).length;
+    let hint;
+    if(!CAM.hasOri)
+      hint = done===0 ? 'ドラッグして回転 · ドットをクリックして撮影' : `${done}/${total} — ドラッグして回転・クリックして撮影`;
+    else if(aligned)
+      hint = '✓ そのまま保持…';
+    else
+      hint = offScreen > 0 ? `矢印の方向に向けてください（残り ${offScreen + projections.filter(({p})=>p.onScreen).length}）` : 'ドットに合わせてください';
+    document.getElementById('camTitle').textContent = hint;
+  }
+  loop(performance.now());
+}
+
+/* ── Draw dot at screen position ── */
+function drawDot(ctx, x, y, isTarget, isAligned){
+  const R = isTarget ? 24 : 16;
+  const alpha = isTarget ? 1 : 0.6;
+
+  // Outer ring
+  ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2);
+  ctx.strokeStyle = isAligned ? '#1F7A72' : `rgba(255,255,255,${alpha})`;
+  ctx.lineWidth = isTarget ? 2.5 : 1.5;
+  ctx.stroke();
+
+  // Inner fill
+  ctx.beginPath(); ctx.arc(x, y, R-4, 0, Math.PI*2);
+  ctx.fillStyle = isAligned
+    ? 'rgba(31,122,114,.8)'
+    : `rgba(255,255,255,${isTarget ? 0.2 : 0.08})`;
+  ctx.fill();
+}
+
+/* ── Edge arrow for off-screen dots ── */
+function drawEdgeArrow(ctx, ex, ey, targetX, targetY, W, H){
+  const angle = Math.atan2(targetY - H/2, targetX - W/2);
+  const R = 10;
+  ctx.save();
+  ctx.translate(ex, ey);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(R, 0);
+  ctx.lineTo(-R*0.6,  R*0.6);
+  ctx.lineTo(-R*0.6, -R*0.6);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fill();
+  ctx.restore();
+}
+
+/* ── Crosshair at screen center ── */
+function drawCrosshair(ctx, cx, cy, primed){
+  const len = 20, gap = 9;
+  ctx.strokeStyle = primed ? '#1F7A72' : 'rgba(255,255,255,.85)';
+  ctx.lineWidth = primed ? 2 : 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy-gap); ctx.lineTo(cx, cy-gap-len);
+  ctx.moveTo(cx, cy+gap); ctx.lineTo(cx, cy+gap+len);
+  ctx.moveTo(cx-gap, cy); ctx.lineTo(cx-gap-len, cy);
+  ctx.moveTo(cx+gap, cy); ctx.lineTo(cx+gap+len, cy);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2);
+  ctx.fillStyle = primed ? '#1F7A72' : 'rgba(255,255,255,.9)';
+  ctx.fill();
+}
+
+/* ── Arc showing hold progress ── */
+function drawHoldArc(ctx, cx, cy, pct){
+  ctx.beginPath();
+  ctx.arc(cx, cy, 32, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
+  ctx.strokeStyle = '#1F7A72';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+/* ── Equirectangular live preview ──
+   After each capture, paint that shot's pixels into the equi canvas.
+   Algorithm: for every equi pixel, check if any captured shot covers it.
+   Run in chunks so it doesn't freeze the UI.
+*/
+function redrawEqui(){
+  const equi = document.getElementById('camEquiCanvas');
+  if(!equi) return;
+  const W = equi.width, H = equi.height;
+  const ctx = equi.getContext('2d');
+  // Clear to black
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0,0,W,H);
+  if(Object.keys(CAM.shots).length === 0) return;
+
+  // Build prepared shots list
+  const shots = Object.values(CAM.shots);
+  const prepared = shots.map(s=>{
+    const yaw=_r(s.yaw), pitch=_r(s.pitch);
+    const hfov=_r(s.fov||65);
+    const SW=s.canvas.width, SH=s.canvas.height;
+    const vfov=hfov*(SH/SW);
+    const cosP=Math.cos(pitch),sinP=Math.sin(pitch);
+    const cosY=Math.cos(yaw),sinY=Math.sin(yaw);
+    const fwd=[cosP*sinY, cosP*cosY, sinP];
+    const right=[cosY,-sinY,0];
+    const up=[-sinP*sinY,-sinP*cosY,cosP];
+    const hTan=Math.tan(hfov/2), vTan=Math.tan(vfov/2);
+    const sctx=s.canvas.getContext('2d');
+    const img=sctx.getImageData(0,0,SW,SH);
+    return {d:img.data,W:SW,H:SH,fwd,right,up,hTan,vTan};
+  });
+
+  // Paint equi in small chunks (async so UI stays responsive)
+  const CHUNK = 30;
+  const outData = ctx.createImageData(W,H);
+  let row = 0;
+
+  function paintChunk(){
+    const endRow = Math.min(row+CHUNK, H);
+    for(let py=row; py<endRow; py++){
+      const lat=(0.5-py/H)*Math.PI;
+      const cosL=Math.cos(lat), sinL=Math.sin(lat);
+      for(let px=0; px<W; px++){
+        const lon=(px/W-0.5)*2*Math.PI;
+        const wx=cosL*Math.sin(lon), wy=cosL*Math.cos(lon), wz=sinL;
+        let bestF=-1, best=null, bx=0, by=0;
+        for(const s of prepared){
+          const f=wx*s.fwd[0]+wy*s.fwd[1]+wz*s.fwd[2];
+          if(f<=0.01) continue;
+          const xc=(wx*s.right[0]+wy*s.right[1]+wz*s.right[2])/f;
+          const yc=(wx*s.up[0]+wy*s.up[1]+wz*s.up[2])/f;
+          if(Math.abs(xc)>s.hTan||Math.abs(yc)>s.vTan) continue;
+          if(f>bestF){
+            bestF=f; best=s;
+            bx=Math.min(s.W-1,Math.max(0,Math.round((xc/s.hTan+1)/2*(s.W-1))));
+            by=Math.min(s.H-1,Math.max(0,Math.round((1-yc/s.vTan)/2*(s.H-1))));
+          }
+        }
+        if(best){
+          const si=(by*best.W+bx)*4, oi=(py*W+px)*4;
+          outData.data[oi]=best.d[si]; outData.data[oi+1]=best.d[si+1];
+          outData.data[oi+2]=best.d[si+2]; outData.data[oi+3]=255;
+        }
+      }
+    }
+    row = endRow;
+    if(row < H) setTimeout(paintChunk, 0);
+    else ctx.putImageData(outData, 0, 0);
+  }
+  setTimeout(paintChunk, 0);
+}
+
+/* ── Capture one target ── */
+function doCapture(targetId, cYaw, cPitch){
+  const video = document.getElementById('camVideo');
+  if(!video.videoWidth) return;
+  if(CAM.shots[targetId]) return;
+  if(CAM.yawRef === null) CAM.yawRef = cYaw;
+
+  const cvs = document.createElement('canvas');
+  cvs.width = video.videoWidth; cvs.height = video.videoHeight;
+  // If front camera, un-mirror for stitching
+  const c = cvs.getContext('2d');
+  if(!CAM.isBack){ c.translate(cvs.width,0); c.scale(-1,1); }
+  c.drawImage(video, 0, 0);
+
+  const t = CAM_TARGETS[targetId];
+  // Yaw in world frame = target's theoretical yaw, offset by where user was facing first
+  const worldYaw = CAM.hasOri
+    ? ((t.yaw + (cYaw - CAM.yawRef) + 360) % 360)
+    : t.yaw;
+
+  CAM.shots[targetId] = { canvas:cvs, yaw:worldYaw, pitch:t.pitch, fov:CAM.fov };
+
+  // Flash
+  const flash = document.createElement('div');
+  flash.style.cssText='position:fixed;inset:0;background:#fff;z-index:9999;opacity:.65;pointer-events:none;transition:opacity .08s';
+  document.body.appendChild(flash);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ flash.style.opacity=0; setTimeout(()=>flash.remove(),100); }));
+
+  // Update equirectangular preview
+  redrawEqui();
+  updateCamUI();
+}
+
+/* Click on dot to capture it directly */
+function clickCaptureDot(clientX, clientY){
+  const cvs = document.getElementById('camDotCanvas');
+  // Convert client coords to canvas coords
+  const rect = cvs.getBoundingClientRect();
+  const x = (clientX - rect.left) * (cvs.width / rect.width);
+  const y = (clientY - rect.top)  * (cvs.height / rect.height);
+
+  // Find closest on-screen dot within 40px
+  let bestId=-1, bestDist=40;
+  for(const {t,p} of (CAM._lastProjections||[])){
+    if(!p.onScreen) continue;
+    const dist = Math.hypot(p.x-x, p.y-y);
+    if(dist < bestDist){ bestDist=dist; bestId=t.id; }
+  }
+  if(bestId >= 0) doCapture(bestId, CAM.camYaw, CAM.camPitch);
+}
+
+/* Manual shutter: capture closest dot to screen center */
+function captureManual(){
+  const cvs = document.getElementById('camDotCanvas');
+  const W = cvs.width, H = cvs.height;
+  const cYaw   = CAM.camYaw   || 0;
+  const cPitch = CAM.camPitch || 0;
+
+  // Find closest uncaptured target to screen center
+  let bestId = -1, bestAngle = 360;
+  for(const t of CAM_TARGETS){
+    if(CAM.shots[t.id]) continue;
+    const p = projectTarget(t.yaw, t.pitch, cYaw, cPitch, W, H);
+    if(!p) continue;
+    if(p.angleDeg < bestAngle){ bestAngle = p.angleDeg; bestId = t.id; }
+  }
+  if(bestId >= 0) doCapture(bestId, cYaw, cPitch);
+}
+
+function updateCamUI(){
+  const n = Object.keys(CAM.shots).length;
+  const total = CAM_TARGETS.length;
+  document.getElementById('camProgressTxt').textContent = `${n} / ${total} 撮影済み`;
+  document.getElementById('camGenBtn').disabled = n < MIN_SHOTS;
+}
+
+/* ── Stitch & add to scene ── */
+async function stitchAndAdd(){
+  const shotList = Object.values(CAM.shots);
+  if(shotList.length < 1) return;
+  closeCameraMode();
+  const ov = document.getElementById('stitchOverlay');
+  ov.classList.add('show');
+  setStitchProgress(0);
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const equi = await buildEquirectangular(shotList, 4096, 2048, setStitchProgress);
+    setStitchProgress(100);
+    equi.toBlob(blob=>{
+      ov.classList.remove('show');
+      const url = URL.createObjectURL(blob);
+      const name = '撮影_'+(S.scenes.length+1);
+      S.scenes.push({id:'sc_cam_'+Date.now(), name, url, thumbUrl:url,
+        hotspots:[], floorX:null, floorY:null, floorYaw:0});
+      renderSceneGrid(); updateStep1UI();
+      const a = document.createElement('a'); a.href=url; a.download=name+'.jpg'; a.click();
+    }, 'image/jpeg', 0.93);
+  } catch(e){
+    ov.classList.remove('show');
+    alert('合成エラー: '+e.message);
+  }
+}
+
+function setStitchProgress(p){
+  document.getElementById('stitchPct').textContent = Math.round(p)+'%';
+  document.getElementById('stitchBar').style.width = p+'%';
+}
+
+/* ── Equirectangular stitching ── */
+async function buildEquirectangular(shots, outW, outH, onProgress){
+  // Pre-compute camera axes for each shot
+  const prepared = shots.map(s=>{
+    const yaw = _r(s.yaw), pitch = _r(s.pitch);
+    const hfov = _r(s.fov||65);
+    const W=s.canvas.width, H=s.canvas.height;
+    const vfov = hfov*(H/W);
+    // Camera axes in world frame
+    const cosP=Math.cos(pitch), sinP=Math.sin(pitch);
+    const cosY=Math.cos(yaw),   sinY=Math.sin(yaw);
+    const fwd   = [cosP*sinY, cosP*cosY, sinP];
+    const right = [cosY, -sinY, 0];
+    const up    = [-sinP*sinY, -sinP*cosY, cosP];
+    const hTan  = Math.tan(hfov/2);
+    const vTan  = Math.tan(vfov/2);
+    const ctx = s.canvas.getContext('2d');
+    const img = ctx.getImageData(0,0,W,H);
+    return {d:img.data, W, H, fwd, right, up, hTan, vTan};
+  });
+
+  const out  = new Uint8ClampedArray(outW*outH*4);
+  const CHUNK = 48;
+
+  for(let startY=0; startY<outH; startY+=CHUNK){
+    await new Promise(r=>setTimeout(r,0));
+    onProgress(startY/outH*96);
+    const endY = Math.min(startY+CHUNK, outH);
+
+    for(let py=startY; py<endY; py++){
+      const lat = (0.5 - py/outH) * Math.PI;
+      const cosL = Math.cos(lat), sinL = Math.sin(lat);
+      for(let px=0; px<outW; px++){
+        const lon = (px/outW - 0.5) * 2*Math.PI;
+        // World unit vector for this equirectangular pixel
+        // Using (X=East, Y=North, Z=Up) same as above
+        const wx = cosL*Math.sin(lon);
+        const wy = cosL*Math.cos(lon);
+        const wz = sinL;
+
+        let bestFwd=-1, best=null, bx=0, by=0;
+        for(const s of prepared){
+          const f = wx*s.fwd[0] + wy*s.fwd[1] + wz*s.fwd[2];
+          if(f <= 0.01) continue;
+          const xc = (wx*s.right[0]+wy*s.right[1]+wz*s.right[2]) / f;
+          const yc = (wx*s.up[0]   +wy*s.up[1]   +wz*s.up[2])    / f;
+          if(Math.abs(xc) > s.hTan || Math.abs(yc) > s.vTan) continue;
+          if(f > bestFwd){
+            bestFwd=f; best=s;
+            bx = Math.min(s.W-1, Math.max(0, Math.round((xc/s.hTan+1)/2*(s.W-1))));
+            by = Math.min(s.H-1, Math.max(0, Math.round((1-yc/s.vTan)/2*(s.H-1))));
+          }
+        }
+        if(best){
+          const si=(by*best.W+bx)*4, oi=(py*outW+px)*4;
+          out[oi]=best.d[si]; out[oi+1]=best.d[si+1]; out[oi+2]=best.d[si+2]; out[oi+3]=255;
+        }
+      }
+    }
+  }
+  const c=document.createElement('canvas'); c.width=outW; c.height=outH;
+  c.getContext('2d').putImageData(new ImageData(out,outW,outH),0,0);
+  return c;
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — 写真 AI アップスケーラー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--bg3:#E6DFD8;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --red:#903030;--redbg:rgba(144,48,48,.07);--redbdr:rgba(144,48,48,.22);
+  --green:#2A7A50;--serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;--r:6px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+button{cursor:pointer;font-family:var(--sans)}
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}
+.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}
+.logo-main b{color:var(--teal);font-weight:600}
+.logo-by{font-size:9.5px;font-weight:400;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans)}
+.hm{display:flex;align-items:center;gap:6px}
+.hs{color:var(--ink4);font-size:12px}
+.hc{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.hb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;padding:0;cursor:pointer;transition:color .2s}
+.hb:hover{color:var(--ink)}
+.hb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.page{max-width:720px;margin:0 auto;padding:40px 24px 60px}
+.eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--teal)}
+.page-title{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.page-title em{font-style:italic;color:var(--teal)}
+.page-desc{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;margin-bottom:32px}
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--bdr2);border-radius:var(--r);padding:52px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--tdim)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{width:52px;height:52px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.uz-icon svg{width:22px;height:22px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.uz-title{font-size:14px;font-weight:500;color:var(--ink)}
+.uz-sub{font-size:12px;color:var(--ink3);font-family:var(--jp)}
+.uz-limit{font-size:11px;color:var(--ink4);font-family:var(--jp);margin-top:2px}
+/* PREVIEW */
+.preview-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:var(--bg2);margin-bottom:20px}
+.preview-wrap img{width:100%;display:block;max-height:400px;object-fit:contain}
+.preview-meta{position:absolute;top:10px;left:10px;background:rgba(28,36,34,.65);color:#fff;font-size:10.5px;font-family:var(--sans);padding:4px 12px;border-radius:20px;backdrop-filter:blur(4px);letter-spacing:.06em}
+.preview-change{position:absolute;bottom:10px;right:10px;background:rgba(28,36,34,.7);color:#fff;border:none;font-size:11px;font-family:var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:20px;cursor:pointer;transition:background .2s}
+.preview-change:hover{background:rgba(28,36,34,.9)}
+/* INFO */
+.info-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.info-cell{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 16px}
+.ic-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;font-family:var(--sans)}
+.ic-val{font-size:13.5px;font-weight:500;color:var(--ink)}
+.ic-val.warn{color:var(--red)}
+.ic-val.ok{color:var(--teal)}
+/* SETTINGS */
+.settings-row{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.sr-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-family:var(--sans)}
+.sr-val{font-size:18px;font-family:var(--serif);font-weight:300;color:var(--teal)}
+.sr-note{font-size:11.5px;font-family:var(--jp);color:var(--ink2)}
+/* GEN BTN */
+.gen-btn{width:100%;background:var(--ink);color:var(--bg);font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.gen-btn:hover:not(:disabled){background:var(--teal)}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.gen-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+/* LOADING — proposal style */
+.gen-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px}
+.gen-wrap.show{display:flex}
+.gen-ring{width:100px;height:100px;border-radius:50%;border:1px solid var(--bdr2);position:relative;margin-bottom:32px;display:flex;align-items:center;justify-content:center}
+.gen-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.gen-inner svg{width:26px;height:26px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:28px}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px}
+.gs-item{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;transition:all .25s}
+.gs-item.act{border-color:var(--tbdr);color:var(--ink);background:var(--tdim)}
+.gs-item.done{border-color:rgba(42,122,80,.25);color:var(--ink3)}
+.gs-dot{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs-item.act .gs-dot{background:var(--teal);animation:pulse 1s ease-in-out infinite}
+.gs-item.done .gs-dot{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:44px;font-weight:300;color:var(--teal);margin-top:20px;line-height:1}
+.gen-pct small{font-family:var(--sans);font-size:13px;color:var(--ink3)}
+/* RESULT */
+.result-wrap{margin-top:32px}
+.result-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.result-eyebrow::before{content:'';width:16px;height:1px;background:var(--teal)}
+/* ZOOMABLE BEFORE/AFTER SLIDER */
+.zslider-outer{position:relative;border-radius:var(--r);overflow:hidden;background:#111;box-shadow:0 4px 24px rgba(28,36,34,.12);touch-action:none;-webkit-user-select:none;user-select:none}
+.zslider-viewport{position:absolute;inset:0;overflow:hidden}
+.zslider-inner{position:absolute;top:0;left:0;width:100%;height:100%;transform-origin:0 0}
+.zsb{position:absolute;inset:0;object-fit:contain;width:100%;height:100%;pointer-events:none;display:block}
+.zsa-wrap{position:absolute;inset:0;overflow:hidden}
+.zsa{position:absolute;inset:0;object-fit:contain;width:100%;height:100%;pointer-events:none;display:block}
+.zs-divider{position:absolute;top:0;bottom:0;width:2px;background:#fff;transform:translateX(-50%);pointer-events:none;z-index:4;box-shadow:0 0 8px rgba(0,0,0,.5)}
+.zs-handle{position:absolute;top:50%;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
+.zs-handle svg{width:18px;height:18px;stroke:var(--ink2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.zs-lbl{position:absolute;bottom:12px;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:rgba(28,36,34,.6);padding:4px 11px;border-radius:20px;font-family:var(--sans);pointer-events:none;z-index:6;backdrop-filter:blur(4px)}
+.zs-lbl-b{left:14px}.zs-lbl-a{right:14px}
+/* zoom control bar */
+.zoom-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);flex-wrap:wrap}
+.zb-hint{font-size:11px;color:var(--ink3);font-family:var(--jp);flex:1;min-width:160px}
+.zb-hint svg{width:12px;height:12px;stroke:var(--ink3);fill:none;stroke-width:1.5;vertical-align:middle;margin-right:3px;stroke-linecap:round;stroke-linejoin:round}
+.zb-btn{width:28px;height:28px;border-radius:var(--r);background:var(--bg);border:1px solid var(--bdr2);color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;flex-shrink:0}
+.zb-btn:hover{border-color:var(--teal);color:var(--teal)}
+.zb-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.zb-scale{font-size:11px;font-family:var(--sans);color:var(--teal);font-weight:600;min-width:38px;text-align:center}
+.zb-reset{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);background:none;border:1px solid var(--bdr);border-radius:var(--r);padding:4px 9px;cursor:pointer;transition:all .18s;font-family:var(--sans)}
+.zb-reset:hover{color:var(--teal);border-color:var(--teal)}
+/* META + ACTIONS */
+.output-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.om-cell{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 16px}
+.om-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;font-family:var(--sans)}
+.om-val{font-size:13px;font-weight:500;color:var(--teal)}
+.action-row{display:flex;gap:10px;margin-top:16px}
+.btn-sm{padding:10px 20px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r);transition:all .2s;cursor:pointer;flex:1}
+.btn-sm.outline{background:transparent;border:1px solid var(--bdr2);color:var(--ink2)}
+.btn-sm.outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-sm.solid{background:var(--ink);border:none;color:#fff;font-weight:500}
+.btn-sm.solid:hover{background:var(--teal)}
+.err-box{margin-top:20px;background:var(--redbg);border:1px solid var(--redbdr);border-radius:var(--r);padding:16px 20px;font-size:13px;font-family:var(--jp);color:var(--red);line-height:1.75}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="hm"><span class="hs">Design & Viz</span><span class="hs">›</span><span class="hc">写真 AI アップスケーラー</span></div>
+  <button class="hb" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>サービス一覧
+  </button>
+</header>
+
+<div class="page">
+  <div class="eyebrow">AI Image Upscale</div>
+  <h1 class="page-title">写真を<em>高解像度</em>に変換</h1>
+  <p class="page-desc">ぼやけた・低解像度の現場写真や完成写真をAIで2倍に拡大。シャープネスとディテールを自動補正し、提案書・広告・SNSに使えるクオリティへ仕上げます。</p>
+
+  <!-- UPLOAD -->
+  <div id="uploadZone" class="upload-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+    <input type="file" accept="image/jpeg,image/png,image/webp" id="fileInput" onchange="onFileSelect(this.files)">
+    <div class="uz-icon"><svg viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg></div>
+    <div class="uz-title">写真をアップロード</div>
+    <div class="uz-sub">クリックまたはドラッグ＆ドロップ</div>
+    <div class="uz-limit">JPG / PNG / WEBP · 最大4MB</div>
+  </div>
+
+  <!-- MAIN SECTION -->
+  <div id="mainSection" class="hidden">
+    <div class="preview-wrap">
+      <img id="previewImg" src="" alt="preview">
+      <div class="preview-meta" id="previewMeta"></div>
+      <button class="preview-change" onclick="resetUpload()">写真を変更</button>
+    </div>
+    <div class="info-row">
+      <div class="info-cell"><div class="ic-lbl">元のサイズ</div><div class="ic-val" id="infoSize">—</div></div>
+      <div class="info-cell"><div class="ic-lbl">出力サイズ（予定）</div><div class="ic-val ok" id="infoOutput">—</div></div>
+      <div class="info-cell"><div class="ic-lbl">ファイルサイズ</div><div class="ic-val" id="infoFileSize">—</div></div>
+    </div>
+    <div class="settings-row">
+      <div><div class="sr-label">拡大倍率</div><div class="sr-val">× 2</div></div>
+      <div class="sr-note">AI による高解像度化。<br>輪郭・テクスチャ・細部を自動補正します。</div>
+    </div>
+    <button class="gen-btn" id="genBtn" onclick="generate()">
+      <svg viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg>
+      AI でアップスケールする
+    </button>
+  </div>
+
+  <!-- LOADING — proposal style -->
+  <div class="gen-wrap" id="loadingSection">
+    <div class="gen-ring"><div class="gen-inner"><svg viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg></div></div>
+    <h2 class="gen-title">処理中です</h2>
+    <p class="gen-sub">AIが写真を高解像度に変換しています。<br>通常30〜90秒かかります。</p>
+    <div class="gen-steps">
+      <div class="gs-item" id="gs1"><span class="gs-dot"></span>画像を解析中...</div>
+      <div class="gs-item" id="gs2"><span class="gs-dot"></span>ディテールを復元中...</div>
+      <div class="gs-item" id="gs3"><span class="gs-dot"></span>シャープネスを補正中...</div>
+      <div class="gs-item" id="gs4"><span class="gs-dot"></span>最終レンダリング中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctN">0</span><small>%</small></div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorSection" class="err-box hidden"></div>
+
+  <!-- RESULT -->
+  <div id="resultSection" class="result-wrap hidden">
+    <div class="result-eyebrow">アップスケール完了 — Before / After 比較</div>
+
+    <!-- ZOOMABLE SLIDER -->
+    <div class="zslider-outer" id="zsOuter" style="aspect-ratio:4/3">
+      <div class="zslider-viewport" id="zsViewport">
+        <div class="zslider-inner" id="zsInner">
+          <img class="zsb" id="zsImgBefore" src="" alt="Before">
+          <div class="zsa-wrap" id="zsAfterWrap">
+            <img class="zsa" id="zsImgAfter" src="" alt="After">
+          </div>
+        </div>
+        <!-- divider & handle are OUTSIDE zsInner so they don't move with zoom -->
+        <div class="zs-divider" id="zsDivider" style="left:50%"></div>
+        <div class="zs-handle" id="zsHandle" style="left:50%">
+          <svg viewBox="0 0 24 24"><path d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/></svg>
+        </div>
+      </div>
+      <div class="zs-lbl zs-lbl-b">Before</div>
+      <div class="zs-lbl zs-lbl-a">After</div>
+    </div>
+
+    <!-- ZOOM CONTROL BAR -->
+    <div class="zoom-bar">
+      <div class="zb-hint">
+        <svg viewBox="0 0 24 24"><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg>スクロールで拡大
+        &nbsp;·&nbsp;
+        <svg viewBox="0 0 24 24" style="margin-left:4px"><path d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>Space+ドラッグでパン
+      </div>
+      <button class="zb-btn" onclick="zbZoom(-1)" title="縮小"><svg viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM13.5 10.5h-6"/></svg></button>
+      <div class="zb-scale" id="zbScale">100%</div>
+      <button class="zb-btn" onclick="zbZoom(1)" title="拡大"><svg viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg></button>
+      <button class="zb-reset" onclick="zbReset()">リセット</button>
+    </div>
+
+    <div class="output-meta">
+      <div class="om-cell"><div class="om-lbl">入力サイズ</div><div class="om-val" id="outBefore">—</div></div>
+      <div class="om-cell"><div class="om-lbl">出力サイズ</div><div class="om-val" id="outAfter">—</div></div>
+      <div class="om-cell"><div class="om-lbl">処理時間</div><div class="om-val" id="outTime">—</div></div>
+    </div>
+    <div class="action-row">
+      <button class="btn-sm outline" onclick="resetAll()">
+        <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>最初から
+      </button>
+      <button class="btn-sm solid" onclick="downloadResult()">
+        <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>ダウンロード
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let originalDataUrl=null, resultUrl=null, startTime=null, elapsedInterval=null;
+let imgWidth=0, imgHeight=0;
+
+// Zoom+pan+slider state
+const ZP={scale:1, tx:0, ty:0, sliderPct:50, minScale:0.5, maxScale:8};
+let spaceDown=false, panning=false, panStart={x:0,y:0}, panOrigin={tx:0,ty:0};
+let sliderDragging=false;
+
+/* ── UPLOAD ── */
+function onDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('drag');}
+function onDragLeave(){document.getElementById('uploadZone').classList.remove('drag');}
+function onDrop(e){e.preventDefault();onDragLeave();onFileSelect(e.dataTransfer.files);}
+
+function onFileSelect(files){
+  if(!files||!files[0]) return;
+  const file=files[0];
+  if(!file.type.startsWith('image/')) return;
+  if(file.size>4*1024*1024){alert('ファイルサイズが4MBを超えています。4MB以下の画像を選択してください。');return;}
+  originalUrl=null; resultUrl=null;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    originalDataUrl=e.target.result;
+    const img=new Image();
+    img.onload=()=>{
+      imgWidth=img.width; imgHeight=img.height;
+      document.getElementById('previewImg').src=originalDataUrl;
+      document.getElementById('previewMeta').textContent=`${imgWidth} × ${imgHeight}px`;
+      document.getElementById('infoSize').textContent=`${imgWidth} × ${imgHeight} px`;
+      document.getElementById('infoOutput').textContent=`${imgWidth*2} × ${imgHeight*2} px`;
+      const mb=(file.size/1024/1024).toFixed(2);
+      const sEl=document.getElementById('infoFileSize');
+      sEl.textContent=`${mb} MB`;
+      sEl.className='ic-val '+(file.size>3.5*1024*1024?'warn':'ok');
+      document.getElementById('uploadZone').classList.add('hidden');
+      document.getElementById('mainSection').classList.remove('hidden');
+    };
+    img.src=originalDataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+function resetUpload(){
+  document.getElementById('uploadZone').classList.remove('hidden');
+  document.getElementById('mainSection').classList.add('hidden');
+  document.getElementById('fileInput').value='';
+  hideAll(); originalDataUrl=null;
+}
+
+/* ── SECTIONS ── */
+function hideAll(){
+  document.getElementById('loadingSection').classList.remove('show');
+  document.getElementById('errorSection').classList.add('hidden');
+  document.getElementById('resultSection').classList.add('hidden');
+}
+function showLoad(){
+  document.getElementById('errorSection').classList.add('hidden');
+  document.getElementById('resultSection').classList.add('hidden');
+  document.getElementById('loadingSection').classList.add('show');
+}
+function hideLoad(){
+  document.getElementById('loadingSection').classList.remove('show');
+}
+
+/* ── GENERATE ── */
+async function generate(){
+  document.getElementById('mainSection').classList.add('hidden');
+  document.getElementById('uploadZone').classList.add('hidden');
+  showLoad();
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Proposal-style tick
+  const ids=['gs1','gs2','gs3','gs4'], pcts=[15,38,65,88];
+  let idx=0;
+  function tick(){
+    if(idx>0){const p=document.getElementById(ids[idx-1]);if(p){p.classList.remove('act');p.classList.add('done');}}
+    if(idx<ids.length){
+      const el=document.getElementById(ids[idx]);if(el)el.classList.add('act');
+      const pn=document.getElementById('pctN');if(pn)pn.textContent=pcts[idx];
+      idx++;setTimeout(tick,16000);
+    }
+  }
+  tick();
+  startTime=Date.now();
+
+  try{
+    const b64=originalDataUrl.split(',')[1];
+    const mime=originalDataUrl.split(';')[0].split(':')[1]||'image/jpeg';
+    const cr=await fetch('/api/upscale',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{image:`data:${mime};base64,${b64}`,scale_factor:2}})
+    });
+    const created=await cr.json();
+    if(created.error) throw new Error(created.error);
+    if(!created.id)   throw new Error('Prediction ID not returned');
+
+    const output=await poll(created.id);
+    const t=((Date.now()-startTime)/1000).toFixed(1);
+
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=100;
+    const last=document.getElementById(ids[ids.length-1]);if(last){last.classList.remove('act');last.classList.add('done');}
+
+    resultUrl=Array.isArray(output)?output[0]:output;
+    document.getElementById('outBefore').textContent=`${imgWidth} × ${imgHeight} px`;
+    document.getElementById('outAfter').textContent=`${imgWidth*2} × ${imgHeight*2} px`;
+    document.getElementById('outTime').textContent=`${t} 秒`;
+
+    setTimeout(()=>showResult(),600);
+
+  }catch(err){
+    hideLoad();
+    ids.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act','done');});
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=0;
+    document.getElementById('mainSection').classList.remove('hidden');
+    const errEl=document.getElementById('errorSection');
+    errEl.innerHTML='<svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:middle;margin-right:6px" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z"/></svg>エラーが発生しました<br><small style="opacity:.6;font-size:11px">'+err.message+'</small>';
+    errEl.classList.remove('hidden');
+    setTimeout(()=>errEl.classList.add('hidden'),7000);
+  }
+}
+
+async function poll(id,max=120000){
+  const s=Date.now();
+  while(Date.now()-s<max){
+    await new Promise(r=>setTimeout(r,3000));
+    const d=await(await fetch('/api/replicate/'+id)).json();
+    if(d.status==='succeeded') return d.output;
+    if(d.status==='failed') throw new Error(d.error||'Generation failed');
+  }
+  throw new Error('タイムアウト');
+}
+
+async function showResult(){
+  hideLoad();
+  // Set both images same intrinsic size for 1:1 display
+  const bImg=document.getElementById('zsImgBefore');
+  const aImg=document.getElementById('zsImgAfter');
+  bImg.src=originalDataUrl;
+  aImg.src=resultUrl;
+  // Wait for before image to know aspect ratio
+  await new Promise(r=>{if(bImg.complete&&bImg.naturalWidth)r();else bImg.onload=r;});
+  const ar=bImg.naturalWidth/bImg.naturalHeight;
+  const outer=document.getElementById('zsOuter');
+  outer.style.aspectRatio=`${ar}`;
+  document.getElementById('resultSection').classList.remove('hidden');
+  zbReset();
+  window.scrollTo({top:0,behavior:'smooth'});
+  initSliderEvents();
+}
+
+/* ── ZOOM + PAN + SLIDER ── */
+function applyTransform(){
+  const inner=document.getElementById('zsInner');
+  // We use CSS transform on zsInner but slider clips zsAfterWrap
+  // Inner is full 100%x100% of viewport; we translate/scale it
+  inner.style.transform=`translate(${ZP.tx}px,${ZP.ty}px) scale(${ZP.scale})`;
+  document.getElementById('zbScale').textContent=Math.round(ZP.scale*100)+'%';
+  updateSliderUI();
+}
+
+function updateSliderUI(){
+  const pct = ZP.sliderPct;
+  // Divider & handle are outside zsInner (in viewport space) — just set pct% of outer
+  document.getElementById('zsDivider').style.left = pct + '%';
+  document.getElementById('zsHandle').style.left  = pct + '%';
+  // Clip zsAfterWrap (lives inside zsInner, pre-transform coordinates)
+  // Divider visual position: x_outer = pct/100 * W
+  // Map to pre-transform inner coords: x_inner = (x_outer - tx) / scale
+  // zsAfterWrap width in pre-transform = W  (NOT W/scale — the div is 100% of inner = W px)
+  // clip% = x_inner / W
+  const W = document.getElementById('zsOuter').clientWidth;
+  const x_inner = (pct / 100 * W - ZP.tx) / ZP.scale;
+  const clipPct = Math.max(0, Math.min(100, (x_inner / W) * 100));
+  document.getElementById('zsAfterWrap').style.clipPath = `inset(0 ${100 - clipPct}% 0 0)`;
+}
+
+function clamp(){
+  const outer=document.getElementById('zsOuter');
+  if(!outer) return;
+  const W=outer.clientWidth, H=outer.clientHeight;
+  const scaledW=W*ZP.scale, scaledH=H*ZP.scale;
+  const maxTx=Math.max(0,(scaledW-W)/2+W*0.1);
+  const maxTy=Math.max(0,(scaledH-H)/2+H*0.1);
+  ZP.tx=Math.max(-maxTx,Math.min(0,ZP.tx)); // keep left edge visible (tx<=0 since origin 0 0)
+  // Actually for origin 0 0, tx can be 0 (no pan left) or negative (pan right)
+  ZP.tx=Math.max(-(scaledW-W)-W*0.1, Math.min(W*0.1, ZP.tx));
+  ZP.ty=Math.max(-(scaledH-H)-H*0.1, Math.min(H*0.1, ZP.ty));
+}
+
+function zbZoom(dir){
+  const outer=document.getElementById('zsOuter');
+  const cx=outer.clientWidth/2, cy=outer.clientHeight/2;
+  zoomAt(dir>0?1.25:1/1.25, cx, cy);
+}
+function zoomAt(factor, cx, cy){
+  const newScale=Math.max(ZP.minScale,Math.min(ZP.maxScale,ZP.scale*factor));
+  ZP.tx=cx-(cx-ZP.tx)*(newScale/ZP.scale);
+  ZP.ty=cy-(cy-ZP.ty)*(newScale/ZP.scale);
+  ZP.scale=newScale;
+  clamp(); applyTransform();
+}
+function zbReset(){
+  ZP.scale=1;ZP.tx=0;ZP.ty=0;ZP.sliderPct=50;
+  applyTransform();
+}
+
+function initSliderEvents(){
+  const outer=document.getElementById('zsOuter');
+  if(!outer||outer._eventsAttached) return;
+  outer._eventsAttached=true;
+
+  // Wheel = zoom
+  outer.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect=outer.getBoundingClientRect();
+    zoomAt(e.deltaY<0?1.15:1/1.15, e.clientX-rect.left, e.clientY-rect.top);
+  },{passive:false});
+
+  // Pointer events — slider drag OR space+pan
+  outer.addEventListener('mousedown',e=>{
+    if(spaceDown){
+      panning=true;
+      panStart={x:e.clientX,y:e.clientY};
+      panOrigin={tx:ZP.tx,ty:ZP.ty};
+      outer.style.cursor='grabbing';
+    } else {
+      sliderDragging=true;
+      updateSliderFromEvent(e,outer);
+    }
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{
+    if(panning){
+      ZP.tx=panOrigin.tx+(e.clientX-panStart.x);
+      ZP.ty=panOrigin.ty+(e.clientY-panStart.y);
+      clamp(); applyTransform();
+    } else if(sliderDragging){
+      updateSliderFromEvent(e,outer);
+    }
+  });
+  window.addEventListener('mouseup',()=>{
+    panning=false; sliderDragging=false;
+    outer.style.cursor=spaceDown?'grab':'crosshair';
+  });
+
+  // Touch: single finger = slider, two fingers = zoom+pan
+  let lastTouches=null;
+  outer.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){
+      sliderDragging=true;
+      updateSliderFromEvent(e.touches[0],outer);
+    }
+    lastTouches=Array.from(e.touches);
+    e.preventDefault();
+  },{passive:false});
+  outer.addEventListener('touchmove',e=>{
+    if(e.touches.length===2&&lastTouches&&lastTouches.length===2){
+      const d0=Math.hypot(lastTouches[0].clientX-lastTouches[1].clientX,lastTouches[0].clientY-lastTouches[1].clientY);
+      const d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const rect=outer.getBoundingClientRect();
+      const cx=((e.touches[0].clientX+e.touches[1].clientX)/2)-rect.left;
+      const cy=((e.touches[0].clientY+e.touches[1].clientY)/2)-rect.top;
+      zoomAt(d1/d0,cx,cy);
+      sliderDragging=false;
+    } else if(e.touches.length===1&&sliderDragging){
+      updateSliderFromEvent(e.touches[0],outer);
+    }
+    lastTouches=Array.from(e.touches);
+    e.preventDefault();
+  },{passive:false});
+  outer.addEventListener('touchend',()=>{sliderDragging=false; lastTouches=null;});
+}
+
+function updateSliderFromEvent(e,outer){
+  const rect=outer.getBoundingClientRect();
+  const x=('clientX' in e?e.clientX:e.clientX)-rect.left;
+  ZP.sliderPct=Math.max(2,Math.min(98,(x/rect.width)*100));
+  updateSliderUI();
+}
+
+// Space key for pan mode
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.target.matches('input,textarea')){spaceDown=true;const o=document.getElementById('zsOuter');if(o)o.style.cursor='grab';e.preventDefault();}});
+window.addEventListener('keyup',e=>{if(e.code==='Space'){spaceDown=false;const o=document.getElementById('zsOuter');if(o)o.style.cursor='crosshair';}});
+
+function downloadResult(){
+  if(!resultUrl) return;
+  const a=document.createElement('a');a.href=resultUrl;a.download='sumika-upscaled.jpg';a.target='_blank';a.click();
+}
+function resetAll(){
+  originalDataUrl=null;resultUrl=null;
+  document.getElementById('uploadZone').classList.remove('hidden');
+  document.getElementById('mainSection').classList.add('hidden');
+  document.getElementById('fileInput').value='';
+  hideAll();
+  ['gs1','gs2','gs3','gs4'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act','done');});
+  const pn=document.getElementById('pctN');if(pn)pn.textContent=0;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

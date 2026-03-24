@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — AI 提案書ジェネレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:    #FAF8F5;
+  --bg2:   #F0ECE6;
+  --bg3:   #E6DFD8;
+  --white: #FFFFFF;
+  --ink:   #1C2422;
+  --ink2:  #4A5E5A;
+  --ink3:  #8AADA8;
+  --ink4:  #B4CECA;
+  --gold:  #1F7A72;
+  --goldd: #186660;
+  --goldl: #2A9088;
+  --gdim:  rgba(31,122,114,.07);
+  --gbdr:  rgba(31,122,114,.22);
+  --bdr:   rgba(28,36,34,.09);
+  --bdr2:  rgba(28,36,34,.16);
+  --green: #2E7A5C;
+  --greenbg: rgba(46,122,92,.08);
+  --greenbdr: rgba(46,122,92,.25);
+  --serif: 'Cormorant Garamond',serif;
+  --sans:  'Sora',sans-serif;
+  --jp:    'Noto Sans JP',sans-serif;
+  --r:     4px;
+}
+html,body{
+  min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.6;
+}
+button{cursor:pointer;font-family:var(--sans)}
+input,select,textarea{font-family:var(--jp)}
+
+/* ── SHELL ── */
+.shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+/* ── HEADER ── */
+header{
+  padding:15px 40px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--bdr);background:var(--white);
+  position:sticky;top:0;z-index:50
+}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}.logo-main b{color:var(--teal);font-weight:600}.logo-by{font-size:9.5px;font-weight:400;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans);opacity:.7;margin-top:1px}
+.logo b{color:var(--gold);font-weight:600}
+.header-mid{display:flex;align-items:center;gap:6px}
+.breadcrumb-sep{color:var(--ink4);font-size:12px}
+.breadcrumb-cur{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.header-back{
+  display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);
+  letter-spacing:.08em;text-transform:uppercase;background:none;border:none;
+  padding:0;transition:color .2s
+}
+.header-back:hover{color:var(--ink)}
+.header-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 57px)}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--white);border-right:1px solid var(--bdr);
+  padding:32px 20px;display:flex;flex-direction:column;gap:0;
+  position:sticky;top:57px;height:calc(100vh - 57px);overflow:hidden
+}
+.sidebar-label{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink4);margin-bottom:14px;padding-left:4px}
+.step-nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.step-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);transition:all .2s}
+.step-item.clickable{cursor:pointer}
+.step-item.clickable:hover{background:var(--bg)}
+.step-item.active{background:var(--gdim);border:1px solid var(--gbdr)}
+.step-item.locked{opacity:.3;pointer-events:none}
+.step-dot{
+  width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10.5px;font-weight:600;color:var(--ink3);flex-shrink:0;transition:all .2s
+}
+.step-item.active .step-dot{border-color:var(--gold);background:var(--gold);color:#fff}
+.step-item.done .step-dot{border-color:var(--green);background:var(--greenbg);color:var(--green);font-size:12px}
+.step-text{display:flex;flex-direction:column;gap:1px}
+.step-label{font-size:12px;font-weight:500;color:var(--ink3);transition:color .2s;line-height:1.3}
+.step-sub{font-size:10px;color:var(--ink4);font-family:var(--jp)}
+.step-item.active .step-label{color:var(--ink)}
+.step-item.done .step-label{color:var(--ink2)}
+.step-conn{width:1px;height:14px;background:var(--bdr);margin-left:22px}
+
+.sidebar-info{
+  margin-top:auto;border-top:1px solid var(--bdr);padding-top:18px;
+  background:var(--gdim);border:1px solid var(--gbdr);border-radius:var(--r);padding:14px 16px
+}
+.si-title{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.si-body{font-size:11px;color:var(--ink2);font-family:var(--jp);line-height:1.75}
+
+/* ── MAIN CONTENT ── */
+.content{padding:40px 52px;max-width:820px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel{animation:fadeUp .3s ease}
+
+/* ── PAGE HEADER ── */
+.page-eyebrow{
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
+  margin-bottom:10px;display:flex;align-items:center;gap:8px
+}
+.page-eyebrow::before{content:'';width:16px;height:1px;background:var(--gold)}
+.page-title{font-family:var(--serif);font-size:34px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.page-title em{font-style:italic;color:var(--gold)}
+.page-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;max-width:520px;margin-bottom:32px}
+
+/* ── PROGRESS ── */
+.progress-wrap{margin-bottom:32px}
+.progress-track{height:2px;background:var(--bg3);border-radius:1px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--goldl));border-radius:1px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.progress-labels{display:flex;justify-content:space-between;margin-top:7px}
+.progress-labels span{font-size:10px;color:var(--ink4);letter-spacing:.05em}
+.progress-labels span.act{color:var(--gold);font-weight:500}
+
+/* ── FORM ELEMENTS ── */
+.form-section{margin-bottom:28px}
+.section-head{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);
+  padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:18px;
+  display:flex;align-items:center;gap:8px
+}
+.section-head svg{width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.fg{display:grid;gap:14px;margin-bottom:14px}
+.fg.col2{grid-template-columns:1fr 1fr}
+.fg.col3{grid-template-columns:1fr 1fr 1fr}
+.fg.col1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:10.5px;font-weight:500;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.req{color:var(--gold);font-size:11px}
+.field input,.field select,.field textarea{
+  background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--r);
+  padding:10px 13px;color:var(--ink);font-size:13px;outline:none;
+  transition:border-color .2s,background .2s;width:100%
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--gold);background:var(--white)
+}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink4)}
+.field select option{background:var(--white)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.75;font-family:var(--jp)}
+.field-hint{font-size:10.5px;color:var(--ink3);font-family:var(--jp)}
+
+/* ── SLIDER ── */
+.slider-field{display:flex;flex-direction:column;gap:5px}
+.slider-field label{font-size:10.5px;font-weight:500;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase}
+.slider-val{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--gold);line-height:1;margin:4px 0 6px}
+.slider-val small{font-family:var(--sans);font-size:11px;color:var(--ink3)}
+input[type=range]{
+  width:100%;appearance:none;height:2px;background:var(--bg3);
+  border-radius:1px;border:none;outline:none;cursor:pointer
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--white);cursor:pointer;
+  box-shadow:0 1px 4px rgba(31,122,114,.3)
+}
+
+/* ── CHIP SELECT ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.chip{
+  padding:6px 14px;border:1px solid var(--bdr2);border-radius:20px;
+  font-size:12px;color:var(--ink2);cursor:pointer;transition:all .18s;
+  background:transparent;font-family:var(--jp)
+}
+.chip.sel{border-color:var(--gold);background:var(--gdim);color:var(--ink)}
+.chip:hover:not(.sel){border-color:var(--bdr2);background:var(--bg2);color:var(--ink)}
+
+/* ── BUTTONS ── */
+.btn-row{
+  display:flex;gap:10px;align-items:center;margin-top:32px;
+  padding-top:22px;border-top:1px solid var(--bdr)
+}
+.btn-primary{
+  background:var(--ink);color:var(--bg);font-size:11.5px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;
+  border:none;border-radius:var(--r);transition:all .2s;
+  display:flex;align-items:center;gap:8px
+}
+.btn-primary:hover{background:var(--gold)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{
+  background:transparent;color:var(--ink2);font-size:11.5px;
+  letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;
+  border:1px solid var(--bdr2);border-radius:var(--r);transition:all .2s
+}
+.btn-ghost:hover{border-color:var(--bdr2);color:var(--ink);background:var(--bg2)}
+.form-note{font-size:11px;color:var(--ink3);font-family:var(--jp);line-height:1.7}
+
+/* ── GENERATING ── */
+.gen-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:60vh;text-align:center;gap:0;
+  padding:40px
+}
+.gen-ring{
+  width:100px;height:100px;border-radius:50%;
+  border:1px solid var(--bdr2);position:relative;margin-bottom:32px;
+  display:flex;align-items:center;justify-content:center
+}
+.gen-ring::before{
+  content:'';position:absolute;inset:-1px;border-radius:50%;
+  border:1.5px solid transparent;
+  border-top-color:var(--gold);border-right-color:var(--goldl);
+  animation:spin 1.4s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{
+  width:62px;height:62px;border-radius:50%;background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:var(--gold)
+}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:28px}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px}
+.gs-item{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;
+  background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);
+  font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;
+  transition:all .25s
+}
+.gs-item.act{border-color:var(--gbdr);color:var(--ink);background:var(--gdim)}
+.gs-item.done{border-color:var(--greenbdr);color:var(--ink3)}
+.gs-dot{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs-item.act .gs-dot{background:var(--gold);animation:pulse 1s ease-in-out infinite}
+.gs-item.done .gs-dot{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:44px;font-weight:300;color:var(--gold);margin-top:20px;line-height:1}
+.gen-pct small{font-family:var(--sans);font-size:13px;color:var(--ink3)}
+
+/* ── PROPOSAL OUTPUT ── */
+.out-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.out-badge{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--green);border:1px solid var(--greenbdr);background:var(--greenbg);border-radius:20px;padding:4px 14px;letter-spacing:.08em;text-transform:uppercase}
+.out-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+.out-actions{display:flex;gap:8px}
+.btn-sm{padding:7px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r);transition:all .2s}
+.btn-sm.outline{background:transparent;border:1px solid var(--bdr2);color:var(--ink2)}
+.btn-sm.outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm.solid{background:var(--ink);border:none;color:var(--bg);font-weight:500}
+.btn-sm.solid:hover{background:var(--gold)}
+
+/* ── PROPOSAL DOCUMENT ── */
+.doc{background:var(--white);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;box-shadow:0 4px 32px rgba(28,36,34,.08)}
+
+/* cover */
+.doc-cover{background:var(--ink);position:relative;overflow:hidden}
+.doc-cover-bar{height:5px;background:linear-gradient(90deg,var(--goldd),var(--goldl))}
+.doc-cover-inner{padding:30px 44px 34px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.doc-brand{font-family:var(--serif);font-size:17px;font-weight:400;color:rgba(255,255,255,.9);letter-spacing:.06em}
+.doc-brand b{color:var(--gold);font-weight:600}
+.doc-tagline-small{font-size:9.5px;color:rgba(255,255,255,.3);font-family:var(--jp);margin-top:3px;letter-spacing:.04em}
+.doc-cover-right{text-align:right}
+.doc-cover-label{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:6px;font-family:var(--sans)}
+.doc-cover-to{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--white);line-height:1.1}
+.doc-cover-date{font-size:10.5px;color:rgba(255,255,255,.35);font-family:var(--jp);margin-top:5px}
+
+/* concept band */
+.doc-concept{background:var(--gold);padding:16px 44px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.doc-plan-name{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--white);font-style:italic}
+.doc-concept-pill{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6);font-family:var(--sans);white-space:nowrap}
+
+/* sections */
+.doc-body{padding:0}
+.p-sec{padding:30px 44px;border-bottom:1px solid var(--bdr)}
+.p-sec:last-child{border-bottom:none}
+.p-sec-head{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.p-sec-num{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.p-sec-title{font-size:11.5px;font-weight:600;color:var(--ink);letter-spacing:.14em;text-transform:uppercase}
+.p-sec-sub{font-size:11px;color:var(--ink3);font-family:var(--jp);margin-left:auto}
+
+/* text */
+.p-text{font-size:13.5px;color:var(--ink2);line-height:2.05;font-family:var(--jp)}
+
+/* plan */
+.p-plan-name{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);line-height:1.2;margin-bottom:5px}
+.p-plan-sub{font-size:12px;color:var(--ink3);font-family:var(--jp);margin-bottom:14px}
+.features-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.feat-pill{font-size:11px;font-family:var(--jp);color:var(--goldd);background:var(--gdim);border:1px solid var(--gbdr);border-radius:20px;padding:4px 13px}
+
+/* floor plan */
+.fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.fp-wrap{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.fp-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:#fff;background:var(--gold);padding:7px 16px;display:flex;align-items:center;gap:6px;font-family:var(--sans)}
+
+/* madori 1F/2F */
+.madori-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:4px}
+.madori-floor-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:9px;font-family:var(--sans);padding-bottom:7px;border-bottom:1px solid var(--bdr)}
+.madori-floor-desc{font-size:12.5px;font-family:var(--jp);color:var(--ink2);line-height:1.9;margin-bottom:12px}
+.room-chips{display:flex;flex-wrap:wrap;gap:6px}
+.room-chip{font-size:11px;font-family:var(--jp);padding:3px 11px;border-radius:3px;border:1px solid var(--bdr);background:var(--bg);color:var(--ink2)}
+.room-chip b{color:var(--ink);font-weight:500}
+
+/* cost */
+.cost-table-wrap{overflow:hidden;border-radius:var(--r);border:1px solid var(--bdr)}
+.ctable{width:100%;border-collapse:collapse;font-family:var(--jp);font-size:13px}
+.ctable thead td{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:9px 16px;background:var(--ink);font-family:var(--sans);font-weight:500}
+.ctable tbody tr{border-bottom:1px solid var(--bdr)}
+.ctable tbody tr:last-child{border-bottom:none}
+.ctable tbody td{padding:11px 16px;color:var(--ink2);vertical-align:middle}
+.ctable tbody tr:nth-child(even) td{background:var(--bg)}
+.ctable tbody td.note{font-size:11px;color:var(--ink3)}
+.ctable tbody td.amt{text-align:right;color:var(--ink);font-weight:500}
+.cost-total-row{background:var(--gdim)!important;border-top:2px solid var(--gold)!important}
+.cost-total-row td{padding:14px 16px!important;font-family:var(--serif)!important;font-size:16px!important;font-weight:400!important}
+.cost-total-row .amt{color:var(--gold)!important;font-size:22px!important}
+
+/* subsidy */
+.sub-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sub-card{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;border-top:3px solid var(--gold)}
+.sub-card-name{font-size:12.5px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:7px;line-height:1.5}
+.sub-card-cond{font-size:11px;color:var(--ink3);font-family:var(--jp);line-height:1.75;margin-bottom:12px}
+.sub-card-amt{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--gold)}
+.sub-total-row{margin-top:14px;padding:12px 18px;background:var(--gdim);border:1px solid var(--gbdr);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between}
+.sub-total-lbl{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.sub-total-amt{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--gold)}
+.sub-note{font-size:12px;color:var(--ink3);font-family:var(--jp);margin-top:10px;line-height:1.8}
+
+/* timeline visual */
+.tl-visual{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:8px}
+.tl-step{padding:0 6px;position:relative;text-align:center}
+.tl-step::before{content:'';position:absolute;top:15px;left:0;right:0;height:1px;background:var(--ink4);z-index:0}
+.tl-step:first-child::before{left:50%}
+.tl-step:last-child::before{right:50%}
+.tl-dot{width:30px;height:30px;border-radius:50%;background:var(--gold);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;position:relative;z-index:1;font-family:var(--sans)}
+.tl-period{font-size:10px;color:var(--gold);font-weight:600;font-family:var(--sans);margin-bottom:3px;letter-spacing:.04em}
+.tl-phase{font-size:9px;color:var(--ink3);font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-family:var(--sans);margin-bottom:6px}
+.tl-event{font-size:11px;color:var(--ink2);font-family:var(--jp);line-height:1.75}
+
+/* message */
+.msg-box{background:var(--bg);border-radius:var(--r);border-left:3px solid var(--gold);padding:20px 26px}
+.msg-text{font-size:13.5px;font-family:var(--jp);color:var(--ink2);line-height:2.1}
+
+/* doc footer */
+.doc-foot{padding:15px 44px;background:var(--ink);display:flex;justify-content:space-between;align-items:center}
+.doc-foot-brand{font-family:var(--serif);font-size:13px;color:rgba(255,255,255,.45)}
+.doc-foot-brand b{color:var(--gold)}
+.doc-foot-note{font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--jp)}
+
+/* error */
+.err-box{background:rgba(180,60,60,.06);border:1px solid rgba(180,60,60,.2);border-radius:var(--r);padding:16px 20px;font-size:13px;font-family:var(--jp);color:#A83030;line-height:1.75}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--bdr);padding:12px 40px;display:flex;justify-content:space-between;align-items:center;background:var(--white)}
+footer span{font-size:10px;color:var(--ink3);font-family:var(--jp)}
+footer .ver{font-family:var(--sans);letter-spacing:.08em}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .content{padding:24px 20px}
+  .fg.col2,.fg.col3{grid-template-columns:1fr}
+  .doc-cover-inner{grid-template-columns:1fr;gap:16px}
+  .doc-cover-right{text-align:left}
+  .p-sec{padding:24px 20px}
+  .fp-grid,.madori-grid,.sub-cards{grid-template-columns:1fr}
+  .tl-visual{grid-template-columns:1fr;gap:12px}
+  .tl-step::before{display:none}
+  .doc-foot{flex-direction:column;gap:6px;text-align:center;padding:14px 20px}
+  .doc-concept{flex-direction:column;align-items:flex-start;gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <header>
+    <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+    <div class="header-mid">
+      <span class="breadcrumb-sep">Sales & CX</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-cur">AI 提案書ジェネレーター</span>
+    </div>
+    <button class="header-back" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+      サービス一覧
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-label">ステップ</div>
+      <div class="step-nav" id="stepNav"></div>
+      <div class="sidebar-info">
+        <div class="si-title">AI Engine</div>
+        <div class="si-body">高性能AIが、日本語に特化した住宅提案書をプロ品質で自動生成します。</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="content" id="content"></div>
+  </div>
+
+  <footer>
+    <span>© 2025 SUMIKA Inc. — 住宅業界のDXを、共に。</span>
+    <span class="ver">v1.0 · Prototype</span>
+  </footer>
+</div>
+
+<script>
+/* ─── API KEY — managed by server.js via .env ─────────── */
+const ANTHROPIC_KEY = '';
+
+/* ─── STATE ─────────────────────────────────────────── */
+const S = {
+  step: 1,
+  form: {
+    clientName:'山田 太郎', clientAge:'35', familyComp:'ご夫婦＋子2人',
+    landArea:'120', buildingArea:'96',
+    orientation:'南', houseType:'2階建て', budget:'3500',
+    style:['シンプルモダン'], priorities:['開放的なLDK','子どもの安全'], zeh:'希望する',
+    notes:'子どもが安心して遊べる土間スペースが欲しい。リビングから庭が見える設計と、将来の在宅ワーク対応も考慮してほしい。'
+  },
+  result: null, error: null
+};
+
+const STEPS = [
+  {id:1, label:'顧客基本情報',   sub:'Customer Info'},
+  {id:2, label:'土地・建物情報', sub:'Land & Building'},
+  {id:3, label:'希望・優先事項', sub:'Preferences'},
+  {id:4, label:'AI生成中',       sub:'Generating…'},
+  {id:5, label:'提案書',         sub:'Proposal Output'},
+];
+
+/* ─── SIDEBAR ────────────────────────────────────────── */
+function renderSidebar(){
+  document.getElementById('stepNav').innerHTML = STEPS.map((s,i)=>{
+    const st = s.id < S.step ? 'done clickable' : s.id === S.step ? 'active' : 'locked';
+    const icon = s.id < S.step ? '✓' : s.id;
+    const conn = i < STEPS.length-1 ? '<div class="step-conn"></div>' : '';
+    return `<div class="step-item ${st}" onclick="jumpStep(${s.id})">
+      <div class="step-dot">${icon}</div>
+      <div class="step-text">
+        <div class="step-label">${s.label}</div>
+        <div class="step-sub">${s.sub}</div>
+      </div>
+    </div>${conn}`;
+  }).join('');
+}
+function jumpStep(id){ if(id < S.step){ S.step=id; render(); } }
+
+/* ─── PROGRESS BAR ───────────────────────────────────── */
+function progressBar(n){
+  const pct = Math.round((n/3)*100);
+  const labels = ['顧客情報','土地・建物','希望事項'];
+  return `<div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-labels">${labels.map((l,i)=>`<span class="${i+1<=n?'act':''}">${l}</span>`).join('')}</div>
+  </div>`;
+}
+
+/* ─── ICONS (inline SVG helpers) ─────────────────────── */
+const ico = {
+  user:  `<svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>`,
+  home:  `<svg viewBox="0 0 24 24"><path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>`,
+  star:  `<svg viewBox="0 0 24 24"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>`,
+};
+function svgIcon(path){
+  return `<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">${path}</svg>`;
+}
+
+/* ─── STEP 1 ─────────────────────────────────────────── */
+function step1(){
+  const f = S.form;
+  const families = ['ご夫婦のみ','ご夫婦＋子1人','ご夫婦＋子2人','ご夫婦＋子3人以上','親との同居','3世代同居'];
+  return `<div class="panel">
+    <div class="page-eyebrow">Step 1 of 3</div>
+    <h1 class="page-title">顧客<em>基本情報</em></h1>
+    <p class="page-sub">お客様の基本情報を入力してください。AIがパーソナライズされた提案書を生成します。</p>
+    ${progressBar(1)}
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>')} お客様情報</div>
+      <div class="fg col2">
+        <div class="field">
+          <label>お客様名 <span class="req">*</span></label>
+          <input type="text" id="clientName" value="${f.clientName}" placeholder="例：山田 太郎">
+        </div>
+        <div class="field">
+          <label>ご年齢</label>
+          <input type="number" id="clientAge" value="${f.clientAge}" placeholder="例：35" min="20" max="80">
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>')} ご家族構成 <span class="req">*</span></div>
+      <div class="chips" id="familyComp">
+        ${families.map(c=>`<button class="chip${f.familyComp===c?' sel':''}" data-g="familyComp" data-v="${c}">${c}</button>`).join('')}
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="next(1)">次へ：土地情報を入力 →</button>
+      <span class="form-note">入力内容はAI生成にのみ使用されます</span>
+    </div>
+  </div>`;
+}
+
+/* ─── STEP 2 ─────────────────────────────────────────── */
+function step2(){
+  const f = S.form;
+  const styles = ['シンプルモダン','ナチュラル','和モダン','北欧スタイル','インダストリアル','プロヴァンス'];
+  return `<div class="panel">
+    <div class="page-eyebrow">Step 2 of 3</div>
+    <h1 class="page-title">土地・建物<em>情報</em></h1>
+    <p class="page-sub">土地の条件と建物の概要を入力してください。</p>
+    ${progressBar(2)}
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>')} 土地・建物規模</div>
+      <div class="fg col3">
+        <div class="slider-field">
+          <label>土地面積（㎡）</label>
+          <div class="slider-val" id="laV">${f.landArea}<small> ㎡</small></div>
+          <input type="range" id="landArea" min="60" max="300" step="5" value="${f.landArea}" oninput="sl('landArea','laV','㎡')">
+        </div>
+        <div class="slider-field">
+          <label>延床面積（㎡）</label>
+          <div class="slider-val" id="baV">${f.buildingArea}<small> ㎡</small></div>
+          <input type="range" id="buildingArea" min="60" max="200" step="5" value="${f.buildingArea}" oninput="sl('buildingArea','baV','㎡')">
+        </div>
+        <div class="slider-field">
+          <label>総予算（万円）</label>
+          <div class="slider-val" id="buV">${Number(f.budget).toLocaleString()}<small> 万円</small></div>
+          <input type="range" id="budget" min="1500" max="8000" step="100" value="${f.budget}" oninput="slBudget()">
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M2.25 21 12 3l9.75 18H2.25Zm10.5-6v3m0-6v.008"/>')} 建物条件</div>
+      <div class="fg col2">
+        <div class="field">
+          <label>日当たり・方角</label>
+          <select id="orientation">
+            ${['南','東','西','北','南東','南西','東南角地','南北通り'].map(o=>`<option${f.orientation===o?' selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>建物タイプ</label>
+          <select id="houseType">
+            ${['平屋','2階建て','3階建て','二世帯住宅'].map(o=>`<option${f.houseType===o?' selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/>')} ご希望スタイル（複数可）</div>
+      <div class="chips" id="style">
+        ${styles.map(c=>`<button class="chip${f.style.includes(c)?' sel':''}" data-g="style" data-v="${c}">${c}</button>`).join('')}
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="next(2)">次へ：ご希望を入力 →</button>
+      <button class="btn-ghost" onclick="prev()">← 戻る</button>
+    </div>
+  </div>`;
+}
+
+/* ─── STEP 3 ─────────────────────────────────────────── */
+function step3(){
+  const f = S.form;
+  const prios = ['省エネ・ZEH','コストパフォーマンス','デザイン重視','開放的なLDK','収納の多さ','子どもの安全','在宅ワーク対応','老後を見据えた設計','太陽光・蓄電池'];
+  return `<div class="panel">
+    <div class="page-eyebrow">Step 3 of 3</div>
+    <h1 class="page-title">希望・<em>優先事項</em></h1>
+    <p class="page-sub">最後の仕上げです。お客様のこだわりをAIに伝えましょう。</p>
+    ${progressBar(3)}
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/>')} 優先事項（複数可）</div>
+      <div class="chips" id="priorities">
+        ${prios.map(c=>`<button class="chip${f.priorities.includes(c)?' sel':''}" data-g="priorities" data-v="${c}">${c}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>')} ZEH・省エネへの関心</div>
+      <div class="chips" id="zeh">
+        ${['希望する','興味はあるが予算次第','特にこだわらない'].map(c=>`<button class="chip${f.zeh===c?' sel':''}" data-g="zehSingle" data-v="${c}">${c}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-head">${svgIcon('<path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>')} その他ご要望・メモ</div>
+      <div class="fg col1">
+        <div class="field">
+          <textarea id="notes" placeholder="例：将来的に太陽光パネルを設置したい。リビングから庭が見える設計にしたい。ペットが1匹います。">${f.notes}</textarea>
+          <span class="field-hint">自由にご記入ください。AIが提案内容に反映します。</span>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">✦ AIで提案書を生成する</button>
+      <button class="btn-ghost" onclick="prev()">← 戻る</button>
+    </div>
+  </div>`;
+}
+
+/* ─── GENERATING ─────────────────────────────────────── */
+function genScreen(){
+  return `<div class="gen-wrap panel">
+    <div class="gen-ring"><div class="gen-inner">✦</div></div>
+    <h2 class="gen-title">AI が提案書を生成中</h2>
+    <p class="gen-sub">入力いただいた情報をもとに、お客様専用の提案書を作成しています。しばらくお待ちください。</p>
+    <div class="gen-steps" id="genSteps">
+      <div class="gs-item" id="gs1"><span class="gs-dot"></span>顧客プロフィールを分析中...</div>
+      <div class="gs-item" id="gs2"><span class="gs-dot"></span>間取りプランを検討中...</div>
+      <div class="gs-item" id="gs3"><span class="gs-dot"></span>概算見積りを計算中...</div>
+      <div class="gs-item" id="gs4"><span class="gs-dot"></span>補助金情報を照合中...</div>
+      <div class="gs-item" id="gs5"><span class="gs-dot"></span>提案書フォーマットを仕上げ中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctN">0</span><small>%</small></div>
+  </div>`;
+}
+
+/* ─── FLOOR PLAN SVG GENERATOR ──────────────────────────── */
+function renderFloorPlan(rooms, label) {
+  if (!rooms || rooms.length === 0) return '';
+  const U = 40, MAX_COLS = 12;
+  const rows = [];
+  let cur = [], curW = 0;
+  rooms.forEach(r => {
+    const rw = Math.max(1, r.w||2), rh = Math.max(1, r.h||2);
+    if (curW + rw > MAX_COLS && cur.length > 0) { rows.push([...cur]); cur=[]; curW=0; }
+    cur.push({...r, w:rw, h:rh});
+    curW += rw;
+  });
+  if (cur.length > 0) rows.push(cur);
+  const layout = [];
+  let y = 0;
+  rows.forEach(row => {
+    const rowH = Math.max(...row.map(r=>r.h));
+    let x = 0;
+    row.forEach(r => { layout.push({...r,x,y}); x+=r.w; });
+    y += rowH;
+  });
+  const svgW = MAX_COLS * U, svgH = y * U;
+  const TC = {
+    living:'#C4E2DC', bedroom:'#C8DDBE', kids:'#DDD8BE',
+    washitsu:'#DDD0A8', wet:'#BCCEDD', entrance:'#CCCAC2',
+    storage:'#D4D4C8', corridor:'#ECEAE4'
+  };
+  const rects = layout.map(r => {
+    const rx=r.x*U+2, ry=r.y*U+2, rw=r.w*U-4, rh=r.h*U-4;
+    const cx=rx+rw/2, cy=ry+rh/2;
+    const fill=TC[r.type]||'#ECEAE4';
+    const hasSize = r.size && r.size.length>0;
+    const fs = Math.min(11.5, Math.max(8, rw/(r.name.length*0.85)));
+    return `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}" stroke="#1C2422" stroke-width="1.5" rx="1"/>
+<text x="${cx}" y="${cy+(hasSize?-6:4)}" text-anchor="middle" dominant-baseline="middle" font-size="${fs.toFixed(1)}" fill="#1C2422" font-family="'Noto Sans JP',sans-serif" font-weight="500">${r.name}</text>${hasSize?`
+<text x="${cx}" y="${cy+9}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" fill="#5A8A85" font-family="'Sora',sans-serif">${r.size}</text>`:''}`;
+  }).join('\n');
+  return `<div class="fp-wrap">
+  <div class="fp-label">${label}</div>
+  <svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:auto;max-height:210px;display:block;background:#F5F3EE">
+    <rect width="${svgW}" height="${svgH}" fill="#F5F3EE"/>
+    ${rects}
+  </svg>
+</div>`;
+}
+
+/* ─── RESULT SCREEN ──────────────────────────────────────── */
+function resultScreen(){
+  if(S.error) return `<div class="panel">
+    <div class="page-eyebrow">エラー</div>
+    <h1 class="page-title">生成に<em>失敗</em>しました</h1>
+    <div class="err-box" style="margin-top:24px">${S.error}</div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">再試行する</button>
+      <button class="btn-ghost" onclick="goBack()">← フォームに戻る</button>
+    </div>
+  </div>`;
+
+  const r = S.result; if(!r) return '';
+  const d = new Date();
+  const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  const fp1 = renderFloorPlan(r.rooms1F||[], '1F — 1階');
+  const fp2 = renderFloorPlan(r.rooms2F||[], '2F — 2階');
+  const fpHtml = (fp1||fp2) ? `<div class="fp-grid">${fp1}${fp2}</div>` : '';
+
+  return `<div class="panel">
+  <div class="out-topbar">
+    <div>
+      <div class="page-eyebrow">提案書が完成しました</div>
+      <h1 class="page-title" style="font-size:23px">${S.form.clientName}様<em>専用</em>提案書</h1>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <span class="out-badge">AI生成完了</span>
+      <div class="out-actions">
+        <button class="btn-sm outline" onclick="generate()">↻ 再生成</button>
+        <button class="btn-sm outline" onclick="window.print()">🖨 印刷</button>
+        <button class="btn-sm solid" onclick="goBack()">＋ 新規作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc">
+
+    <!-- COVER -->
+    <div class="doc-cover">
+      <div class="doc-cover-bar"></div>
+      <div class="doc-cover-inner">
+        <div>
+          <div class="doc-brand">SUMI<b>KA</b></div>
+          <div class="doc-tagline-small">住宅会社専用AIプラットフォーム</div>
+        </div>
+        <div class="doc-cover-right">
+          <div class="doc-cover-label">ご提案書</div>
+          <div class="doc-cover-to">${S.form.clientName} 様</div>
+          <div class="doc-cover-date">${dateStr} 作成</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPT BAND -->
+    <div class="doc-concept">
+      <div>
+        <div class="doc-plan-name">${r.planName||''}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);font-family:var(--jp);margin-top:3px">${r.planSub||''}</div>
+      </div>
+      <div class="doc-concept-pill">${r.concept||''}</div>
+    </div>
+
+    <div class="doc-body">
+
+      <!-- 01 挨拶 -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">01</div><div class="p-sec-title">ご挨拶</div></div>
+        <p class="p-text">${r.greeting||''}</p>
+      </div>
+
+      <!-- 02 プラン -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">02</div><div class="p-sec-title">プランのご説明</div></div>
+        <div class="p-plan-name">${r.planName||''}</div>
+        <div class="p-plan-sub">${r.planSub||''}</div>
+        <p class="p-text">${r.planDesc||''}</p>
+        ${(r.features||[]).length ? `<div class="features-bar">${r.features.map(f=>`<span class="feat-pill">✦ ${f}</span>`).join('')}</div>` : ''}
+      </div>
+
+      <!-- 03 間取りプラン (SVG) -->
+      ${fpHtml ? `<div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">03</div><div class="p-sec-title">間取りプラン</div><div class="p-sec-sub">${S.form.buildingArea}㎡ / ${S.form.houseType}</div></div>
+        ${fpHtml}
+      </div>` : ''}
+
+      <!-- 04 間取りの特徴 -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">${fpHtml?'04':'03'}</div><div class="p-sec-title">間取りの特徴</div></div>
+        <div class="madori-grid">
+          <div>
+            <div class="madori-floor-lbl">1F — 1階</div>
+            <p class="madori-floor-desc">${r.madori1F||''}</p>
+            <div class="room-chips">${(r.rooms1F||[]).filter(rm=>rm.type!=='corridor').map(rm=>`<span class="room-chip"><b>${rm.name}</b>${rm.size?' '+rm.size:''}</span>`).join('')}</div>
+          </div>
+          <div>
+            <div class="madori-floor-lbl">2F — 2階</div>
+            <p class="madori-floor-desc">${r.madori2F||''}</p>
+            <div class="room-chips">${(r.rooms2F||[]).filter(rm=>rm.type!=='corridor').map(rm=>`<span class="room-chip"><b>${rm.name}</b>${rm.size?' '+rm.size:''}</span>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 05 概算見積もり -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">${fpHtml?'05':'04'}</div><div class="p-sec-title">概算見積もり</div></div>
+        <div class="cost-table-wrap">
+          <table class="ctable">
+            <thead><tr><td>項目</td><td>内容</td><td style="text-align:right">概算金額</td></tr></thead>
+            <tbody>
+              ${(r.costs||[]).map(c=>`<tr><td>${c.item}</td><td class="note">${c.note}</td><td class="amt">${c.amount}</td></tr>`).join('')}
+              <tr class="cost-total-row"><td colspan="2" style="font-size:14px;color:var(--ink2);font-family:var(--jp)">合計（税込）</td><td class="amt">${r.totalCost||''}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 06 補助金 -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">${fpHtml?'06':'05'}</div><div class="p-sec-title">補助金・優遇制度</div></div>
+        <div class="sub-cards">${(r.subsidies||[]).map(s=>`<div class="sub-card"><div class="sub-card-name">${s.name}</div><div class="sub-card-cond">${s.cond}</div><div class="sub-card-amt">${s.amount}</div></div>`).join('')}</div>
+        ${r.subsidyTotal ? `<div class="sub-total-row"><span class="sub-total-lbl">合計 補助金の目安</span><span class="sub-total-amt">${r.subsidyTotal}</span></div>` : ''}
+        ${r.subsidyNote ? `<p class="sub-note">${r.subsidyNote}</p>` : ''}
+      </div>
+
+      <!-- 07 スケジュール -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">${fpHtml?'07':'06'}</div><div class="p-sec-title">着工スケジュール</div></div>
+        <div class="tl-visual">${(r.timeline||[]).map((t,i)=>`<div class="tl-step"><div class="tl-dot">${i+1}</div><div class="tl-period">${t.period}</div><div class="tl-phase">${t.phase||''}</div><div class="tl-event">${t.event}</div></div>`).join('')}</div>
+      </div>
+
+      <!-- 08 担当者より -->
+      <div class="p-sec">
+        <div class="p-sec-head"><div class="p-sec-num">${fpHtml?'08':'07'}</div><div class="p-sec-title">担当者より</div></div>
+        <div class="msg-box"><p class="msg-text">${r.message||''}</p></div>
+      </div>
+
+    </div><!-- /.doc-body -->
+
+    <div class="doc-foot">
+      <div class="doc-foot-brand">SUMI<b>KA</b> — AI Proposal Engine</div>
+      <div class="doc-foot-note">本提案書はAIが生成した参考資料です。最終的な金額・仕様は担当者との打合せにてご確認ください。</div>
+    </div>
+
+  </div><!-- /.doc -->
+</div>`;
+}
+
+/* ─── RENDER ─────────────────────────────────────────── */
+function render(){
+  renderSidebar();
+  const c = document.getElementById('content');
+  if(S.step===1) c.innerHTML = step1();
+  else if(S.step===2) c.innerHTML = step2();
+  else if(S.step===3) c.innerHTML = step3();
+  else if(S.step===4) c.innerHTML = genScreen();
+  else if(S.step===5) c.innerHTML = resultScreen();
+  attachListeners();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ─── LISTENERS ──────────────────────────────────────── */
+function attachListeners(){
+  ['clientName','clientAge','notes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',e=>S.form[id]=e.target.value);
+  });
+  ['orientation','houseType'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('change',e=>S.form[id]=e.target.value);
+  });
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const g=c.dataset.g, v=c.dataset.v;
+      if(g==='familyComp'){
+        S.form.familyComp=v;
+        document.querySelectorAll('[data-g="familyComp"]').forEach(x=>x.classList.remove('sel'));
+        c.classList.add('sel');
+      } else if(g==='zehSingle'){
+        S.form.zeh=v;
+        document.querySelectorAll('[data-g="zehSingle"]').forEach(x=>x.classList.remove('sel'));
+        c.classList.add('sel');
+      } else {
+        const arr=S.form[g], i=arr.indexOf(v);
+        if(i>-1) arr.splice(i,1); else arr.push(v);
+        c.classList.toggle('sel');
+      }
+    });
+  });
+}
+
+/* ─── SLIDERS ────────────────────────────────────────── */
+function sl(id,vid,unit){
+  const v=document.getElementById(id).value;
+  S.form[id]=v;
+  document.getElementById(vid).innerHTML=Number(v).toLocaleString()+'<small> '+unit+'</small>';
+}
+function slBudget(){
+  const v=document.getElementById('budget').value;
+  S.form.budget=v;
+  document.getElementById('buV').innerHTML=Number(v).toLocaleString()+'<small> 万円</small>';
+}
+
+/* ─── NAV ────────────────────────────────────────────── */
+function next(from){
+  if(from===1 && !S.form.clientName.trim()){ alert('お客様名を入力してください'); return; }
+  if(from===1 && !S.form.familyComp){ alert('家族構成を選択してください'); return; }
+  S.step=from+1; render();
+}
+function prev(){ S.step--; render(); }
+function goBack(){ S.step=1; S.result=null; S.error=null; render(); }
+
+/* ─── GENERATE ───────────────────────────────────────── */
+async function generate(){
+  S.step=4; S.result=null; S.error=null; render();
+  const ids=['gs1','gs2','gs3','gs4','gs5'], pcts=[15,35,55,78,92];
+  let idx=0;
+  function tick(){
+    if(idx>0){const p=document.getElementById(ids[idx-1]);if(p){p.classList.remove('act');p.classList.add('done');}}
+    if(idx<ids.length){
+      const el=document.getElementById(ids[idx]);if(el)el.classList.add('act');
+      const pn=document.getElementById('pctN');if(pn)pn.textContent=pcts[idx];
+      idx++;setTimeout(tick,900);
+    }
+  }
+  tick();
+  const f=S.form, budget=Number(f.budget);
+  const prompt=`あなたは一流の日本の住宅営業担当者です。以下のお客様情報をもとに、心のこもった創造的な住宅提案書をJSONで生成してください。
+
+重要な指示:
+- 挨拶・プラン説明・メッセージは「この家族だけのために書いた」ような温かみと具体性を持たせること。一般的なテンプレートにならないように。
+- プラン名は詩的で印象的に（例：「光庭の家」「風のかたち」「うちそとの間で」）
+- 間取りの説明は1F・2Fを分けて、具体的な部屋名と畳数を含めること
+
+お客様情報:
+名前: ${f.clientName}様（${f.clientAge||''}歳）/ 家族: ${f.familyComp}
+土地: ${f.landArea}㎡ / 延床: ${f.buildingArea}㎡ / 向き: ${f.orientation} / タイプ: ${f.houseType}
+予算: ${budget.toLocaleString()}万円 / スタイル: ${f.style.join('・')||'指定なし'}
+優先事項: ${f.priorities.join('・')||'指定なし'} / ZEH: ${f.zeh}
+備考: ${f.notes||'なし'}
+
+以下のJSON形式のみで返してください（\`\`\`不要、他のテキスト不要）:
+{
+  "greeting": "3〜4文。お客様の状況やライフスタイルに直接触れた、この家族だけへの温かい挨拶",
+  "concept": "15文字以内のコンセプト（例：陽だまりと風の家）",
+  "planName": "詩的なプラン名（例：光庭の家 〜緑と光がめぐる日々〜）",
+  "planSub": "サブタイトル（15文字以内）",
+  "planDesc": "3〜4文。このプランならではの魅力をストーリー的に。家族の暮らし方に触れること",
+  "features": ["特徴1（15文字以内）","特徴2","特徴3"],
+  "madori1F": "1階の間取り説明（具体的な部屋名・畳数を含む、2〜3文）",
+  "madori2F": "2階の間取り説明（具体的な部屋名・畳数を含む、2〜3文）",
+  "rooms1F": [
+    {"name":"玄関","size":"","w":2,"h":2,"type":"entrance"},
+    {"name":"LDK","size":"20畳","w":8,"h":5,"type":"living"},
+    {"name":"和室","size":"6畳","w":4,"h":3,"type":"washitsu"},
+    {"name":"洗面室","size":"","w":2,"h":2,"type":"wet"},
+    {"name":"浴室","size":"1坪","w":2,"h":2,"type":"wet"},
+    {"name":"トイレ","size":"","w":1,"h":2,"type":"wet"},
+    {"name":"廊下","size":"","w":3,"h":2,"type":"corridor"}
+  ],
+  "rooms2F": [
+    {"name":"主寝室","size":"8畳","w":4,"h":4,"type":"bedroom"},
+    {"name":"子供室①","size":"6畳","w":3,"h":4,"type":"kids"},
+    {"name":"子供室②","size":"6畳","w":3,"h":4,"type":"kids"},
+    {"name":"書斎","size":"3畳","w":3,"h":2,"type":"bedroom"},
+    {"name":"WIC","size":"3畳","w":3,"h":2,"type":"storage"},
+    {"name":"廊下","size":"","w":3,"h":2,"type":"corridor"}
+  ],
+  "costs": [
+    {"item":"建築工事費","note":"基礎・躯体・内装仕上げ一式","amount":"¥X,XXX万円"},
+    {"item":"設備工事費","note":"キッチン・浴室・空調・給排水","amount":"¥XXX万円"},
+    {"item":"外構工事費","note":"アプローチ・駐車場・植栽","amount":"¥XXX万円"},
+    {"item":"諸費用・設計費","note":"設計監理・確認申請・登記","amount":"¥XXX万円"}
+  ],
+  "totalCost": "¥X,XXX万円（税込）",
+  "subsidies": [
+    {"name":"補助金名","cond":"適用条件（1文）","amount":"¥XXX万円"},
+    {"name":"補助金名2","cond":"適用条件","amount":"¥XXX万円"},
+    {"name":"住宅ローン控除","cond":"入居翌年確定申告で申請、借入残高の0.7%","amount":"最大¥XXX万円"}
+  ],
+  "subsidyTotal": "¥XXX万円",
+  "subsidyNote": "補助金についての補足（1文）",
+  "timeline": [
+    {"period":"1〜2ヶ月","phase":"計画","event":"詳細打合せ・仕様確定"},
+    {"period":"3〜4ヶ月","phase":"申請","event":"確認申請・地盤調査"},
+    {"period":"5〜7ヶ月","phase":"着工","event":"基礎工事・上棟"},
+    {"period":"8〜10ヶ月","phase":"工事","event":"内装・設備取付"},
+    {"period":"11〜12ヶ月","phase":"完成","event":"検査・補助金申請・引き渡し"}
+  ],
+  "message": "2〜3文。担当者個人の想いを込めた温かく誠実な締めくくり"
+}
+
+rooms1F・rooms2Fは実際の${f.houseType}の間取りとして成立するよう部屋を選定。金額は予算${budget.toLocaleString()}万円に現実的に合わせること。`;
+
+  try{
+    const res=await fetch('/api/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(data.error){throw new Error(data.error.message);}
+    const raw=(data.content||[]).map(i=>i.text||'').join('');
+    S.result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=100;
+    const last=document.getElementById(ids[ids.length-1]);if(last){last.classList.remove('act');last.classList.add('done');}
+    setTimeout(()=>{S.step=5;render();},700);
+  }catch(e){
+    S.error='APIエラーが発生しました。<br><br><small style="opacity:.6">'+e.message+'</small>';
+    S.step=5;render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>

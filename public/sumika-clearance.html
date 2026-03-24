@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUMIKA — 不用品・搬出 & 清掃 AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF8F5;--bg2:#F0ECE6;--white:#FFFFFF;
+  --ink:#1C2422;--ink2:#4A5E5A;--ink3:#8AADA8;--ink4:#B4CECA;
+  --teal:#1F7A72;--teald:#186660;--teall:#2A9088;
+  --tdim:rgba(31,122,114,.07);--tbdr:rgba(31,122,114,.22);
+  --bdr:rgba(28,36,34,.09);--bdr2:rgba(28,36,34,.16);
+  --red:#903030;--redbg:rgba(144,48,48,.07);--redbdr:rgba(144,48,48,.22);
+  --serif:'Cormorant Garamond',serif;--sans:'Sora',sans-serif;--jp:'Noto Sans JP',sans-serif;
+  --r:6px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.6}
+header{padding:15px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--white);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:baseline;gap:7px;text-decoration:none}.logo-main{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);letter-spacing:.04em}.logo-main b{color:var(--teal);font-weight:600}.logo-by{font-size:9.5px;font-weight:400;color:var(--ink4);letter-spacing:.06em;font-family:var(--sans);opacity:.7;margin-top:1px}
+.logo b{color:var(--teal);font-weight:600}
+.hm{display:flex;align-items:center;gap:6px}
+.hs{color:var(--ink4);font-size:12px}
+.hc{font-size:11.5px;color:var(--ink2);font-family:var(--jp)}
+.hb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;background:none;border:none;cursor:pointer;transition:color .2s}
+.hb:hover{color:var(--ink)}
+.hb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.main{max-width:760px;margin:0 auto;padding:40px 24px 60px}
+.ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ey::before{content:'';width:16px;height:1px;background:var(--teal)}
+.pt{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.pt em{font-style:italic;color:var(--teal)}
+.ps{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.85;margin-bottom:36px}
+.sblk{margin-bottom:32px}
+.slbl{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.slbl::before{content:attr(data-n);width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans)}
+.upload-zone{border:2px dashed var(--bdr2);border-radius:var(--r);padding:36px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--tdim)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{width:48px;height:48px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.uz-icon svg{width:22px;height:22px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.uz-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:5px}
+.uz-sub{font-size:12px;color:var(--ink3);font-family:var(--jp)}
+.pv-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:var(--bg2);display:none}
+.pv-wrap img{width:100%;display:block}
+.pv-ov{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:12px;transition:background .2s}
+.pv-wrap:hover .pv-ov{background:rgba(28,36,34,.2)}
+.pv-btn{background:rgba(28,36,34,.8);color:#fff;border:none;border-radius:4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer;font-family:var(--sans);opacity:0;transition:opacity .2s}
+.pv-wrap:hover .pv-btn{opacity:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.opt{border:1.5px solid var(--bdr);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s;background:var(--white);display:flex;align-items:flex-start;gap:12px}
+.opt:hover{border-color:var(--ink3)}
+.opt.sel{border-color:var(--teal);background:var(--tdim)}
+.opt-ico{width:36px;height:36px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.opt.sel .opt-ico{background:rgba(31,122,114,.12)}
+.opt-t{font-size:13px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:3px;line-height:1.4}
+.opt.sel .opt-t{color:var(--teal)}
+.opt-s{font-size:11px;color:var(--ink3);font-family:var(--jp);line-height:1.6}
+.opt-c{border:1.5px solid var(--bdr);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s;background:var(--white);display:flex;align-items:flex-start;gap:12px;width:100%}
+.opt-c:hover{border-color:var(--ink3)}
+.opt-c.sel{border-color:var(--teal);background:var(--tdim)}
+.opt-c .opt-ico{width:36px;height:36px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.opt-c.sel .opt-ico{background:rgba(31,122,114,.12)}
+.opt-c .opt-t{font-size:13px;font-weight:500;color:var(--ink);font-family:var(--jp);margin-bottom:3px}
+.opt-c.sel .opt-t{color:var(--teal)}
+.opt-c .opt-s{font-size:11px;color:var(--ink3);font-family:var(--jp)}
+.carea{display:none;margin-top:10px}
+.carea.show{display:block}
+.carea textarea{width:100%;background:var(--white);border:1.5px solid var(--bdr);border-radius:var(--r);padding:12px 14px;color:var(--ink);font-size:13px;font-family:var(--jp);outline:none;transition:border-color .2s;resize:vertical;min-height:90px;line-height:1.75}
+.carea textarea:focus{border-color:var(--teal)}
+.carea textarea::placeholder{color:var(--ink4)}
+.gbtn{width:100%;background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:16px 32px;border:none;border-radius:var(--r);cursor:pointer;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:28px}
+.gbtn:hover{background:var(--teal)}
+.gbtn:disabled{opacity:.4;cursor:not-allowed}
+.gbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* LOADING — proposal style */
+.gen-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px}
+.gen-wrap.show{display:flex}
+.gen-ring{width:100px;height:100px;border-radius:50%;border:1px solid var(--bdr2);position:relative;margin-bottom:32px;display:flex;align-items:center;justify-content:center}
+.gen-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--teal);border-right-color:var(--teall);animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.gen-inner svg{width:26px;height:26px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.gen-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gen-sub{font-size:13px;color:var(--ink2);font-family:var(--jp);line-height:1.9;max-width:380px;margin-bottom:28px}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px}
+.gs-item{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--jp);color:var(--ink3);text-align:left;transition:all .25s}
+.gs-item.act{border-color:var(--tbdr);color:var(--ink);background:var(--tdim)}
+.gs-item.done{border-color:rgba(42,122,80,.25);color:var(--ink3)}
+.gs-dot{width:7px;height:7px;border-radius:50%;background:var(--ink4);flex-shrink:0;transition:background .3s}
+.gs-item.act .gs-dot{background:var(--teal);animation:pulse 1s ease-in-out infinite}
+.gs-item.done .gs-dot{background:#2A7A50}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-pct{font-family:var(--serif);font-size:44px;font-weight:300;color:var(--teal);margin-top:20px;line-height:1}
+.gen-pct small{font-family:var(--sans);font-size:13px;color:var(--ink3)}
+.rwrap{display:none}
+.rwrap.show{display:block}
+.rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.rtitle{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--ink)}
+.rtitle em{font-style:italic;color:var(--teal)}
+.bsm{padding:7px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;transition:all .2s;cursor:pointer;background:transparent;border:1px solid var(--bdr2);color:var(--ink2)}
+.bsm:hover{border-color:var(--teal);color:var(--teal)}
+.scont{position:relative;border-radius:var(--r);overflow:hidden;user-select:none;cursor:ew-resize;box-shadow:0 8px 40px rgba(28,36,34,.14);background:var(--bg2)}
+.sbefore{display:block;width:100%}
+.sbefore img{width:100%;display:block}
+.safter{position:absolute;top:0;left:0;height:100%;overflow:hidden}
+.safter img{position:absolute;top:0;left:0;height:100%;max-width:none}
+.sdiv{position:absolute;top:0;bottom:0;width:2px;background:#fff;transform:translateX(-50%);pointer-events:none;box-shadow:0 0 10px rgba(0,0,0,.35)}
+.shandle{position:absolute;top:50%;left:50%;width:44px;height:44px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 16px rgba(0,0,0,.25);pointer-events:none}
+.shandle svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.slbl2{position:absolute;bottom:14px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:rgba(28,36,34,.75);color:#fff;padding:4px 11px;border-radius:20px;font-family:var(--sans);pointer-events:none}
+.slbl-b{left:14px}
+.slbl-a{right:14px}
+.shint{text-align:center;font-size:11px;color:var(--ink3);margin-top:10px;font-family:var(--jp)}
+.dlrow{display:flex;gap:10px;margin-top:16px}
+.dlbtn{flex:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:all .2s;text-decoration:none;font-size:11.5px;color:var(--ink2);font-family:var(--sans);letter-spacing:.04em;display:block}
+.dlbtn:hover{border-color:var(--teal);color:var(--teal);background:var(--tdim)}
+.ebox{background:var(--redbg);border:1px solid var(--redbdr);border-radius:var(--r);padding:14px 18px;font-size:13px;font-family:var(--jp);color:var(--red);line-height:1.75;display:none;margin-top:16px}
+.ebox.show{display:block}
+footer{border-top:1px solid var(--bdr);padding:12px 40px;display:flex;justify-content:space-between;align-items:center;background:var(--white);margin-top:40px}
+footer span{font-size:10px;color:var(--ink3);font-family:var(--jp)}
+@media(max-width:600px){.main{padding:24px 16px 40px}.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/"><span class="logo-main">SUMI<b>KA</b></span><span class="logo-by">by onil</span></a>
+  <div class="hm"><span class="hs">Operations</span><span class="hs">&#8250;</span><span class="hc">不用品・搬出 &amp; 清掃 AI</span></div>
+  <button class="hb" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+    サービス一覧
+  </button>
+</header>
+
+<div class="main">
+  <div class="ey">AI Image Editor</div>
+  <h1 class="pt">不用品・搬出 &amp; <em>清掃 AI</em></h1>
+  <p class="ps">写真をアップロードし、除去・清掃したい内容を選ぶだけ。AIが自動で画像を処理します。</p>
+
+  <div class="sblk" id="su">
+    <div class="slbl" data-n="1">写真をアップロード</div>
+    <div class="upload-zone" id="uz" ondragover="dov(event)" ondragleave="dlv()" ondrop="drf(event)">
+      <input type="file" accept="image/*" id="fi" onchange="hf(this.files[0])">
+      <div class="uz-icon"><svg viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg></div>
+      <div class="uz-title">写真をドラッグ&ドロップ</div>
+      <div class="uz-sub">または クリックしてファイルを選択 ・ JPG / PNG</div>
+    </div>
+    <div class="pv-wrap" id="pvw">
+      <img id="pvi" src="" alt="preview">
+      <div class="pv-ov"><button class="pv-btn" onclick="ri()">別の写真に変更</button></div>
+    </div>
+  </div>
+
+  <div class="sblk" id="sp" style="display:none">
+    <div class="slbl" data-n="2">何を除去・清掃しますか？</div>
+    <div class="opts">
+      <div class="opt" data-m="interior" onclick="sm('interior')">
+        <div class="opt-ico"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg></div>
+        <div><div class="opt-t">室内をすべて空にする</div><div class="opt-s">家具・家電・荷物を全除去。壁・床・天井はそのまま。</div></div>
+      </div>
+      <div class="opt" data-m="exterior" onclick="sm('exterior')">
+        <div class="opt-ico"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg></div>
+        <div><div class="opt-t">外装をきれいにする</div><div class="opt-s">外壁の苔・汚れ・落書き・廃棄物を除去。</div></div>
+      </div>
+    </div>
+    <div class="opt-c" data-m="custom" onclick="sm('custom')">
+      <div class="opt-ico"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></div>
+      <div><div class="opt-t">カスタム — 何を除去するか自分で書く</div><div class="opt-s">特定の家具・汚れ・物だけを除去したい場合</div></div>
+    </div>
+    <div class="carea" id="ca">
+      <textarea id="cp" placeholder="例：古いソファと冷蔵庫を除去してください。壁の黒ずみも消してください。"></textarea>
+    </div>
+    <button class="gbtn" id="gb" onclick="generate()" disabled>
+      <svg viewBox="0 0 24 24"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+      AIで処理する
+    </button>
+  </div>
+
+  <div class="gen-wrap" id="lw">
+    <div class="gen-ring"><div class="gen-inner"><svg viewBox="0 0 24 24"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg></div></div>
+    <h2 class="gen-title">AIが処理中です</h2>
+    <p class="gen-sub">写真から不用品・汚れを除去しています。しばらくお待ちください。</p>
+    <div class="gen-steps">
+      <div class="gs-item" id="gs1"><span class="gs-dot"></span>画像を解析中...</div>
+      <div class="gs-item" id="gs2"><span class="gs-dot"></span>不要物を特定中...</div>
+      <div class="gs-item" id="gs3"><span class="gs-dot"></span>背景を復元中...</div>
+      <div class="gs-item" id="gs4"><span class="gs-dot"></span>クリーンアップ処理中...</div>
+      <div class="gs-item" id="gs5"><span class="gs-dot"></span>仕上げ処理中...</div>
+    </div>
+    <div class="gen-pct"><span id="pctN">0</span><small>%</small></div>
+  </div>
+
+  <div class="ebox" id="eb"></div>
+
+  <div class="rwrap" id="rw">
+    <div class="rhead">
+      <div class="rtitle">比較 — Before / <em>After</em></div>
+      <button class="bsm" onclick="ra()"><svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>やり直す</button>
+    </div>
+    <div class="scont" id="sc" onmousedown="sd(event)" ontouchstart="st(event)">
+      <div class="sbefore"><img id="bi" src="" alt="Before"></div>
+      <div class="safter" id="sa" style="width:50%"><img id="ai" src="" alt="After"></div>
+      <div class="sdiv" id="sdv" style="left:50%">
+        <div class="shandle"><svg viewBox="0 0 24 24"><path d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/></svg></div>
+      </div>
+      <div class="slbl2 slbl-b">Before</div>
+      <div class="slbl2 slbl-a">After</div>
+    </div>
+    <div class="shint"><svg style="width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>スライダーをドラッグして比較</div>
+    <div class="dlrow">
+      <a class="dlbtn" id="dla" href="#" download="after.jpg"><svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>After をダウンロード</a>
+      <a class="dlbtn" id="dlb" href="#" download="before.jpg"><svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>Before をダウンロード</a>
+    </div>
+    <!-- Continue editing with result -->
+    <button onclick="continueEdit()" style="width:100%;margin-top:10px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);padding:14px 20px;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;font-family:var(--sans)">
+      <svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      この結果画像を使って続けて編集する
+    </button>
+  </div>
+</div>
+
+<footer>
+  <span>© 2025 SUMIKA Inc.</span>
+  
+</footer>
+
+<script>
+const PROMPTS={
+  interior:"Remove all furniture, sofas, chairs, tables, appliances, shelving, curtains, rugs, boxes and personal belongings from inside the room. Keep all walls, floor, ceiling, windows, window frames, glass panes, doors and door frames completely unchanged and intact. The result must be a completely empty clean room with no objects. Do not alter wall colors, floor material, or any structural elements.",
+  exterior:"Remove all moss, green algae, black mold, dirt stains, graffiti, peeling paint and weathering marks from all exterior building walls and surfaces. Remove any debris, old tires, waste materials and clutter from yard and garden areas. Restore all surfaces to clean well-maintained condition. Keep all windows, glass, window frames, doors, door frames and the exact building structure completely unchanged."
+};
+let V={src:null,mode:null,pct:50,lastOutput:null};
+
+function hf(f){
+  if(!f||!f.type.startsWith('image/'))return;
+  const r=new FileReader();
+  r.onload=e=>{
+    V.src=e.target.result;
+    V.lastOutput=null;
+    document.getElementById('uz').style.display='none';
+    document.getElementById('pvi').src=e.target.result;
+    document.getElementById('pvw').style.display='block';
+    document.getElementById('sp').style.display='block';
+    document.getElementById('rw').classList.remove('show');
+    rm();
+  };
+  r.readAsDataURL(f);
+}
+function ri(){
+  V.src=null;
+  document.getElementById('uz').style.display='block';
+  document.getElementById('pvw').style.display='none';
+  document.getElementById('sp').style.display='none';
+  document.getElementById('fi').value='';
+  rm();
+}
+function dov(e){e.preventDefault();document.getElementById('uz').classList.add('drag')}
+function dlv(){document.getElementById('uz').classList.remove('drag')}
+function drf(e){e.preventDefault();dlv();hf(e.dataTransfer.files[0])}
+
+function sm(m){
+  V.mode=m;
+  document.querySelectorAll('.opt,.opt-c').forEach(el=>el.classList.remove('sel'));
+  document.querySelector('[data-m="'+m+'"]').classList.add('sel');
+  document.getElementById('ca').classList.toggle('show',m==='custom');
+  document.getElementById('gb').disabled=false;
+}
+function rm(){V.mode=null;document.querySelectorAll('.opt,.opt-c').forEach(el=>el.classList.remove('sel'));document.getElementById('ca').classList.remove('show');document.getElementById('gb').disabled=true;}
+
+function compress(src,maxPx,q){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      let{width:w,height:h}=img;
+      if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',q));
+    };
+    img.src=src;
+  });
+}
+
+async function generate(){
+  if(!V.src||!V.mode)return;
+  const prompt=V.mode==='custom'?document.getElementById('cp').value.trim():PROMPTS[V.mode];
+  if(!prompt){alert('内容を入力してください');return;}
+
+  // Hide sections, show loading
+  document.getElementById('su').style.display='none';
+  document.getElementById('sp').style.display='none';
+  document.getElementById('rw').classList.remove('show');
+  document.getElementById('eb').classList.remove('show');
+  document.getElementById('lw').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Proposal-style tick animation
+  const ids=['gs1','gs2','gs3','gs4','gs5'], pcts=[10,28,50,72,90];
+  let idx=0;
+  function tick(){
+    if(idx>0){const p=document.getElementById(ids[idx-1]);if(p){p.classList.remove('act');p.classList.add('done');}}
+    if(idx<ids.length){
+      const el=document.getElementById(ids[idx]);if(el)el.classList.add('act');
+      const pn=document.getElementById('pctN');if(pn)pn.textContent=pcts[idx];
+      idx++;setTimeout(tick,11000); // ~55s total spread
+    }
+  }
+  tick();
+
+  try{
+    const comp=await compress(V.src,1024,0.85);
+    const b64=comp.split(',')[1];
+    const cr=await fetch('/api/flux2pro',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{prompt:prompt,input_images:['data:image/jpeg;base64,'+b64],aspect_ratio:'match_input_image',output_format:'jpg',safety_tolerance:5,prompt_upsampling:false}})
+    });
+    let p=await cr.json();
+    if(p.error)throw new Error(p.error);
+    let polls=0;
+    while(p.status!=='succeeded'&&p.status!=='failed'&&polls<90){
+      await new Promise(r=>setTimeout(r,2000));
+      p=await(await fetch('/api/replicate/'+p.id)).json();
+      polls++;
+    }
+    if(p.status==='failed'||p.error)throw new Error(p.error||'Generation failed');
+    const out=Array.isArray(p.output)?p.output[0]:p.output;
+    if(!out)throw new Error('No output returned');
+    // Complete loading
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=100;
+    const last=document.getElementById(ids[ids.length-1]);if(last){last.classList.remove('act');last.classList.add('done');}
+    V.lastOutput=out;
+    setTimeout(()=>showResult(V.src,out),600);
+  }catch(e){
+    // On error — restore
+    document.getElementById('lw').classList.remove('show');
+    ids.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act','done');});
+    const pn=document.getElementById('pctN');if(pn)pn.textContent=0;
+    document.getElementById('su').style.display='block';
+    document.getElementById('sp').style.display='block';
+    const eb=document.getElementById('eb');
+    eb.innerHTML='<svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:middle;margin-right:6px" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z"/></svg>エラー：'+e.message+'<br><small style="opacity:.6">しばらく待ってから再試行してください。</small>';
+    eb.classList.add('show');
+  }
+}
+
+function showResult(bUrl,aUrl){
+  document.getElementById('lw').classList.remove('show');
+  document.getElementById('bi').src=bUrl;
+  const ai=document.getElementById('ai');
+  ai.src=aUrl;
+  ai.onload=()=>{
+    const cont=document.getElementById('sc');
+    ai.style.width=cont.offsetWidth+'px';
+    ai.style.height=document.getElementById('bi').offsetHeight+'px';
+    ai.style.objectFit='cover';
+  };
+  document.getElementById('dlb').href=bUrl;
+  document.getElementById('dla').href=aUrl;
+  setSl(50);
+  document.getElementById('rw').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Continue editing: use output image as new source
+function continueEdit(){
+  if(!V.lastOutput) return;
+  // Load output URL as new source via canvas (convert URL to dataURL)
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.onload=()=>{
+    const c=document.createElement('canvas');
+    c.width=img.width;c.height=img.height;
+    c.getContext('2d').drawImage(img,0,0);
+    V.src=c.toDataURL('image/jpeg',0.92);
+    V.lastOutput=null;
+    document.getElementById('pvi').src=V.src;
+    document.getElementById('pvw').style.display='block';
+    document.getElementById('uz').style.display='none';
+    document.getElementById('rw').classList.remove('show');
+    document.getElementById('su').style.display='block';
+    document.getElementById('sp').style.display='block';
+    rm();
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  img.onerror=()=>{
+    // fallback: use URL directly (may not work cross-origin for canvas, but src works)
+    V.src=V.lastOutput;
+    V.lastOutput=null;
+    document.getElementById('pvi').src=V.src;
+    document.getElementById('pvw').style.display='block';
+    document.getElementById('uz').style.display='none';
+    document.getElementById('rw').classList.remove('show');
+    document.getElementById('su').style.display='block';
+    document.getElementById('sp').style.display='block';
+    rm();
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  img.src=V.lastOutput;
+}
+
+function setSl(pct){
+  V.pct=Math.max(1,Math.min(99,pct));
+  document.getElementById('sa').style.width=V.pct+'%';
+  document.getElementById('sdv').style.left=V.pct+'%';
+}
+function gp(cx){const r=document.getElementById('sc').getBoundingClientRect();return((cx-r.left)/r.width)*100;}
+function sd(e){
+  e.preventDefault();setSl(gp(e.clientX));
+  const mv=e2=>setSl(gp(e2.clientX));
+  const up=()=>{window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);};
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+}
+function st(e){
+  const mv=e2=>setSl(gp(e2.touches[0].clientX));
+  const en=()=>{window.removeEventListener('touchmove',mv);window.removeEventListener('touchend',en);};
+  window.addEventListener('touchmove',mv,{passive:true});window.addEventListener('touchend',en);
+}
+function ra(){
+  document.getElementById('rw').classList.remove('show');
+  document.getElementById('eb').classList.remove('show');
+  document.getElementById('lw').classList.remove('show');
+  ['gs1','gs2','gs3','gs4','gs5'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act','done');});
+  const pn=document.getElementById('pctN');if(pn)pn.textContent=0;
+  document.getElementById('su').style.display='block';
+  document.getElementById('sp').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
