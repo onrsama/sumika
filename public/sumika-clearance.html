@@ -313,9 +313,9 @@ async function generate(){
   try{
     const comp=await compress(V.src,1024,0.85);
     const b64=comp.split(',')[1];
-    const cr=await fetch('/api/flux2pro',{
+    const cr=await fetch('/api/replicate',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:{prompt:prompt,input_images:['data:image/jpeg;base64,'+b64],aspect_ratio:'match_input_image',output_format:'jpg',safety_tolerance:5,prompt_upsampling:false}})
+      body:JSON.stringify({input:{prompt:prompt,input_image:'data:image/jpeg;base64,'+b64,output_format:'jpg',safety_tolerance:5}})
     });
     let p=await cr.json();
     if(p.error)throw new Error(p.error);
